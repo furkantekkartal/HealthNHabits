@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { analyzeFood, addFoodEntry, createProduct } from '../services/api';
+import { analyzeFood, addFoodEntry, createProduct, getProducts } from '../services/api';
 import { Toast } from '../components/ui/UIComponents';
 
 const MEAL_TYPES = [
@@ -23,6 +23,12 @@ export default function FoodAnalysis() {
     const [selectedMealType, setSelectedMealType] = useState('lunch');
     const [toast, setToast] = useState(null);
     const [mealName, setMealName] = useState('');
+
+    // Add Item Modal State
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [searching, setSearching] = useState(false);
 
     // Check if we're editing an existing entry
     useEffect(() => {
@@ -121,20 +127,61 @@ export default function FoodAnalysis() {
         }));
     };
 
-    const updateItem = (id, field, value) => {
-        setResult(prev => ({
-            ...prev,
-            items: prev.items.map(item =>
-                item.id === id ? { ...item, [field]: value } : item
-            )
-        }));
-    };
-
     const deleteItem = (id) => {
         setResult(prev => ({
             ...prev,
             items: prev.items.filter(item => item.id !== id)
         }));
+    };
+
+    // Search for products
+    const handleSearch = async (query) => {
+        setSearchQuery(query);
+        if (query.length < 2) {
+            setSearchResults([]);
+            return;
+        }
+
+        setSearching(true);
+        try {
+            const res = await getProducts({ search: query });
+            setSearchResults(res.data.slice(0, 10));
+        } catch (err) {
+            console.error('Search error:', err);
+        } finally {
+            setSearching(false);
+        }
+    };
+
+    // Add product from catalog to detected items
+    const addProductToItems = (product) => {
+        const newItem = {
+            id: Date.now(),
+            name: product.name,
+            calories: product.nutrition?.calories || 0,
+            protein: product.nutrition?.protein || 0,
+            carbs: product.nutrition?.carbs || 0,
+            fat: product.nutrition?.fat || 0,
+            fiber: product.nutrition?.fiber || 0,
+            portion: product.servingSize?.value || 100,
+            basePortion: product.servingSize?.value || 100,
+            baseCalories: product.nutrition?.calories || 0,
+            baseProtein: product.nutrition?.protein || 0,
+            baseCarbs: product.nutrition?.carbs || 0,
+            baseFat: product.nutrition?.fat || 0,
+            baseFiber: product.nutrition?.fiber || 0,
+            unit: product.servingSize?.unit || 'g'
+        };
+
+        setResult(prev => ({
+            ...prev,
+            items: [...(prev?.items || []), newItem]
+        }));
+
+        setShowAddModal(false);
+        setSearchQuery('');
+        setSearchResults([]);
+        setToast({ message: `${product.name} added!`, type: 'success' });
     };
 
     // Save as Meal - saves the whole meal as one item to log AND catalog
@@ -195,7 +242,7 @@ export default function FoodAnalysis() {
     }), { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, portion: 0 }) || { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, portion: 0 };
 
     return (
-        <div className="flex flex-col min-h-full bg-[#f6f8f6] pb-48">
+        <div className="flex flex-col min-h-full bg-[#f6f8f6]">
             {/* Toast */}
             {toast && (
                 <Toast
@@ -217,14 +264,14 @@ export default function FoodAnalysis() {
                 </div>
             </header>
 
-            {/* Main Content */}
-            <main className="flex-1 overflow-y-auto">
+            {/* Main Content - Scrollable with proper padding for fixed footer */}
+            <main className="flex-1 overflow-y-auto pb-56">
                 {/* Image Section */}
                 <div className="px-4 py-3">
                     {!imagePreview && !result ? (
                         <div
                             onClick={() => fileInputRef.current?.click()}
-                            className="w-full min-h-[220px] rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all"
+                            className="w-full min-h-[180px] rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all"
                         >
                             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
                                 <span className="material-symbols-outlined text-primary text-4xl">photo_camera</span>
@@ -237,7 +284,7 @@ export default function FoodAnalysis() {
                     ) : imagePreview ? (
                         <div className="relative">
                             <div
-                                className="w-full min-h-[180px] rounded-2xl bg-cover bg-center flex flex-col justify-end overflow-hidden shadow-sm"
+                                className="w-full min-h-[160px] rounded-2xl bg-cover bg-center flex flex-col justify-end overflow-hidden shadow-sm"
                                 style={{ backgroundImage: `url(${imagePreview})` }}
                             >
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-2xl"></div>
@@ -275,7 +322,7 @@ export default function FoodAnalysis() {
 
                 {/* Analyze Button */}
                 {imagePreview && !result && (
-                    <div className="px-4">
+                    <div className="px-4 mb-4">
                         <button
                             onClick={handleAnalyze}
                             disabled={analyzing}
@@ -322,43 +369,46 @@ export default function FoodAnalysis() {
                         </div>
 
                         {/* Stats Summary */}
-                        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-                            <div className="flex items-end justify-between mb-4 border-b border-gray-100 pb-4">
+                        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                            <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-100">
                                 <div>
-                                    <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">Total Energy</p>
+                                    <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Total</p>
                                     <div className="flex items-baseline gap-1">
-                                        <span className="text-3xl font-bold">{totals.calories}</span>
-                                        <span className="text-primary font-bold text-lg">kcal</span>
+                                        <span className="text-2xl font-bold">{totals.calories}</span>
+                                        <span className="text-primary font-bold">kcal</span>
                                     </div>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-4 gap-3">
-                                <div className="flex flex-col gap-1 text-center">
-                                    <span className="text-gray-500 text-[10px] font-medium">Protein</span>
-                                    <span className="text-lg font-bold text-purple-600">{totals.protein}g</span>
+                            <div className="grid grid-cols-4 gap-2 text-center">
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="text-[10px] text-gray-500 font-medium">Protein</span>
+                                    <span className="text-sm font-bold text-purple-600">{totals.protein}g</span>
                                 </div>
-                                <div className="flex flex-col gap-1 text-center">
-                                    <span className="text-gray-500 text-[10px] font-medium">Carbs</span>
-                                    <span className="text-lg font-bold text-amber-600">{totals.carbs}g</span>
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="text-[10px] text-gray-500 font-medium">Carbs</span>
+                                    <span className="text-sm font-bold text-amber-600">{totals.carbs}g</span>
                                 </div>
-                                <div className="flex flex-col gap-1 text-center">
-                                    <span className="text-gray-500 text-[10px] font-medium">Fat</span>
-                                    <span className="text-lg font-bold text-red-600">{totals.fat}g</span>
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="text-[10px] text-gray-500 font-medium">Fat</span>
+                                    <span className="text-sm font-bold text-red-600">{totals.fat}g</span>
                                 </div>
-                                <div className="flex flex-col gap-1 text-center">
-                                    <span className="text-gray-500 text-[10px] font-medium">Fiber</span>
-                                    <span className="text-lg font-bold text-green-600">{totals.fiber}g</span>
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="text-[10px] text-gray-500 font-medium">Fiber</span>
+                                    <span className="text-sm font-bold text-green-600">{totals.fiber}g</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Detected Items Header */}
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-bold">Detected Items</h3>
-                            <Link to="/catalog" className="text-primary text-sm font-semibold flex items-center gap-1 hover:opacity-80">
+                            <h3 className="text-base font-bold">Detected Items</h3>
+                            <button
+                                onClick={() => setShowAddModal(true)}
+                                className="text-primary text-sm font-semibold flex items-center gap-1 hover:opacity-80"
+                            >
                                 <span className="material-symbols-outlined text-[18px]">add</span>
                                 Add Item
-                            </Link>
+                            </button>
                         </div>
 
                         {/* Detected Items List */}
@@ -366,13 +416,13 @@ export default function FoodAnalysis() {
                             {result.items?.map((item) => (
                                 <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
                                     <div className="flex items-start gap-3">
-                                        <div className="size-14 rounded-xl bg-gray-100 flex items-center justify-center text-3xl shrink-0">
+                                        <div className="size-12 rounded-xl bg-gray-100 flex items-center justify-center text-2xl shrink-0">
                                             🍽️
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-start mb-2">
+                                            <div className="flex justify-between items-start mb-1">
                                                 <div>
-                                                    <p className="font-semibold text-base truncate">{item.name}</p>
+                                                    <p className="font-semibold text-sm truncate">{item.name}</p>
                                                     <p className="text-primary font-bold text-sm">{item.calories} kcal</p>
                                                 </div>
                                                 <button
@@ -384,7 +434,7 @@ export default function FoodAnalysis() {
                                             </div>
 
                                             {/* Macros Row */}
-                                            <div className="flex gap-3 text-[10px] mb-2">
+                                            <div className="flex gap-2 text-[10px] mb-2">
                                                 <span className="text-purple-600 font-medium">P: {item.protein}g</span>
                                                 <span className="text-amber-600 font-medium">C: {item.carbs}g</span>
                                                 <span className="text-red-600 font-medium">F: {item.fat}g</span>
@@ -397,24 +447,24 @@ export default function FoodAnalysis() {
                                                 <div className="flex items-center gap-2">
                                                     <button
                                                         onClick={() => updateItemPortion(item.id, Math.max(1, (item.portion || 100) - 10))}
-                                                        className="flex size-7 items-center justify-center rounded-md bg-white shadow-sm text-gray-600 hover:text-primary border border-gray-100"
+                                                        className="flex size-6 items-center justify-center rounded-md bg-white shadow-sm text-gray-600 hover:text-primary border border-gray-100"
                                                     >
-                                                        <span className="material-symbols-outlined text-[16px]">remove</span>
+                                                        <span className="material-symbols-outlined text-[14px]">remove</span>
                                                     </button>
-                                                    <div className="flex items-baseline gap-1 min-w-[4rem] justify-center">
+                                                    <div className="flex items-baseline gap-1 min-w-[3.5rem] justify-center">
                                                         <input
                                                             type="number"
                                                             value={item.portion || 100}
                                                             onChange={(e) => updateItemPortion(item.id, parseInt(e.target.value) || 0)}
-                                                            className="w-12 p-0 text-center bg-transparent border-none focus:ring-0 font-bold text-sm"
+                                                            className="w-10 p-0 text-center bg-transparent border-none focus:ring-0 font-bold text-sm"
                                                         />
-                                                        <span className="text-xs text-gray-500">{item.unit || 'g'}</span>
+                                                        <span className="text-[10px] text-gray-500">{item.unit || 'g'}</span>
                                                     </div>
                                                     <button
                                                         onClick={() => updateItemPortion(item.id, (item.portion || 100) + 10)}
-                                                        className="flex size-7 items-center justify-center rounded-md bg-white shadow-sm text-gray-600 hover:text-primary border border-gray-100"
+                                                        className="flex size-6 items-center justify-center rounded-md bg-white shadow-sm text-gray-600 hover:text-primary border border-gray-100"
                                                     >
-                                                        <span className="material-symbols-outlined text-[16px]">add</span>
+                                                        <span className="material-symbols-outlined text-[14px]">add</span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -427,28 +477,28 @@ export default function FoodAnalysis() {
                         {/* Search Manually Link */}
                         <div className="text-center py-2">
                             <p className="text-xs text-gray-400">
-                                Is something missing? <Link to="/catalog" className="text-primary hover:underline">Tap to search manually</Link>
+                                Is something missing? <button onClick={() => setShowAddModal(true)} className="text-primary hover:underline">Tap to add manually</button>
                             </p>
                         </div>
                     </div>
                 )}
             </main>
 
-            {/* Sticky Footer with Save Button */}
+            {/* Fixed Footer with Save Button - Proper spacing above nav bar */}
             {result?.items?.length > 0 && (
-                <div className="fixed bottom-16 left-0 right-0 bg-[#f6f8f6]/95 backdrop-blur-md border-t border-gray-200 p-4 flex flex-col gap-3 z-20">
+                <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 z-30">
                     {/* Meal Type Selector */}
-                    <div className="flex gap-2">
+                    <div className="flex gap-1 p-3 pb-2 border-b border-gray-100">
                         {MEAL_TYPES.map((meal) => (
                             <button
                                 key={meal.id}
                                 onClick={() => setSelectedMealType(meal.id)}
-                                className={`flex-1 flex flex-col items-center gap-0.5 py-2 px-1 rounded-xl transition-all border ${selectedMealType === meal.id
+                                className={`flex-1 flex flex-col items-center gap-0.5 py-2 rounded-xl transition-all border ${selectedMealType === meal.id
                                     ? 'bg-primary/10 border-primary'
-                                    : 'bg-white border-gray-100'
+                                    : 'bg-gray-50 border-transparent'
                                     }`}
                             >
-                                <span className={`material-symbols-outlined text-[18px] ${selectedMealType === meal.id ? 'text-primary' : 'text-gray-400'
+                                <span className={`material-symbols-outlined text-[16px] ${selectedMealType === meal.id ? 'text-primary' : 'text-gray-400'
                                     }`}>{meal.icon}</span>
                                 <span className={`text-[10px] font-medium ${selectedMealType === meal.id ? 'text-primary' : 'text-gray-500'
                                     }`}>{meal.label}</span>
@@ -456,17 +506,89 @@ export default function FoodAnalysis() {
                         ))}
                     </div>
 
-                    {/* Save as Meal Button - Single button that saves to log + catalog */}
-                    <button
-                        onClick={handleSaveAsMeal}
-                        disabled={loading}
-                        className="flex items-center justify-center gap-2 w-full h-12 bg-primary hover:bg-[#0fd60f] active:scale-[0.98] transition-all rounded-xl shadow-lg shadow-primary/20 disabled:opacity-50"
-                    >
-                        <span className="material-symbols-outlined text-black">check</span>
-                        <span className="text-black font-bold text-base">
-                            {loading ? 'Saving...' : 'Save as Meal'}
-                        </span>
-                    </button>
+                    {/* Save Button */}
+                    <div className="p-3 pt-2">
+                        <button
+                            onClick={handleSaveAsMeal}
+                            disabled={loading}
+                            className="flex items-center justify-center gap-2 w-full h-12 bg-primary hover:bg-[#0fd60f] active:scale-[0.98] transition-all rounded-xl shadow-lg shadow-primary/20 disabled:opacity-50"
+                        >
+                            <span className="material-symbols-outlined text-black">check</span>
+                            <span className="text-black font-bold text-base">
+                                {loading ? 'Saving...' : 'Save as Meal'}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Item Modal */}
+            {showAddModal && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" onClick={() => setShowAddModal(false)}>
+                    <div className="bg-white rounded-t-3xl w-full max-w-md max-h-[70vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+                        <div className="p-4 border-b border-gray-100">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-lg font-bold">Add Item</h3>
+                                <button onClick={() => setShowAddModal(false)} className="p-1">
+                                    <span className="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
+                            <div className="relative">
+                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => handleSearch(e.target.value)}
+                                    placeholder="Search for food..."
+                                    autoFocus
+                                    className="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl border-none focus:ring-2 focus:ring-primary"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4">
+                            {searching && (
+                                <div className="text-center py-8 text-gray-400">
+                                    <span className="material-symbols-outlined animate-spin text-2xl">sync</span>
+                                    <p className="mt-2">Searching...</p>
+                                </div>
+                            )}
+                            {!searching && searchResults.length === 0 && searchQuery.length >= 2 && (
+                                <div className="text-center py-8 text-gray-400">
+                                    <span className="material-symbols-outlined text-4xl mb-2">search_off</span>
+                                    <p>No results found</p>
+                                    <Link to="/catalog/new" className="text-primary text-sm mt-2 inline-block">Create new product</Link>
+                                </div>
+                            )}
+                            {!searching && searchResults.length > 0 && (
+                                <div className="flex flex-col gap-2">
+                                    {searchResults.map((product) => (
+                                        <button
+                                            key={product._id}
+                                            onClick={() => addProductToItems(product)}
+                                            className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 text-left"
+                                        >
+                                            <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-xl">
+                                                {product.emoji || '🍽️'}
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="font-semibold text-sm">{product.name}</p>
+                                                <p className="text-xs text-gray-500">
+                                                    {product.nutrition?.calories || 0} kcal • {product.servingSize?.value || 100}{product.servingSize?.unit || 'g'}
+                                                </p>
+                                            </div>
+                                            <span className="material-symbols-outlined text-primary">add_circle</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            {!searching && searchQuery.length < 2 && (
+                                <div className="text-center py-8 text-gray-400">
+                                    <span className="material-symbols-outlined text-4xl mb-2">restaurant_menu</span>
+                                    <p>Type to search your catalog</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

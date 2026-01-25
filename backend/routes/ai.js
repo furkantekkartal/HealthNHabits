@@ -35,6 +35,7 @@ Return ONLY a valid JSON object (no markdown, no code blocks) with this exact st
   "totalProtein": number,
   "totalCarbs": number,
   "totalFat": number,
+  "totalFiber": number,
   "items": [
     {
       "name": "food item name",
@@ -42,6 +43,7 @@ Return ONLY a valid JSON object (no markdown, no code blocks) with this exact st
       "protein": number,
       "carbs": number,
       "fat": number,
+      "fiber": number,
       "portion": number,
       "unit": "g" or "ml" or "piece",
       "confidence": "high" or "medium" or "low"
@@ -54,6 +56,7 @@ Rules:
 - Identify ALL visible food items separately
 - Estimate realistic portion sizes
 - Use reasonable calorie estimates based on typical serving sizes
+- Include fiber content for each item (important for nutrition tracking)
 - If you cannot identify food, return {"success": false, "error": "Could not identify food"}
 - Numbers should be integers, not strings`
                         },
