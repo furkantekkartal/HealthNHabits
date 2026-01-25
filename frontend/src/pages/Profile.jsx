@@ -187,10 +187,10 @@ export default function Profile() {
 
     // Updated activity levels with correct multipliers
     const activityLevels = [
-        { value: 'sedentary', label: 'Sedentary', desc: 'Little to no exercise, desk job', icon: 'chair', multiplier: 1.2 },
-        { value: 'lightly_active', label: 'Lightly Active', desc: 'Light exercise 1-3 days/week', icon: 'directions_walk', multiplier: 1.35 },
-        { value: 'active', label: 'Active', desc: 'Moderate exercise 3-5 days/week', icon: 'fitness_center', multiplier: 1.5 },
-        { value: 'very_active', label: 'Very Active', desc: 'Hard exercise 6-7 days/week', icon: 'bolt', multiplier: 1.7 },
+        { value: 'sedentary', label: 'Sedentary', desc: 'Little to no exercise, desk job', icon: 'chair', multiplier: 1.2, color: 'text-purple-500' },
+        { value: 'lightly_active', label: 'Lightly Active', desc: 'Light exercise 1-3 days/week', icon: 'directions_walk', multiplier: 1.35, color: 'text-blue-500' },
+        { value: 'active', label: 'Active', desc: 'Moderate exercise 3-5 days/week', icon: 'fitness_center', multiplier: 1.5, color: 'text-orange-500' },
+        { value: 'very_active', label: 'Very Active', desc: 'Hard exercise 6-7 days/week', icon: 'bolt', multiplier: 1.7, color: 'text-red-500' },
     ];
 
     // Calculate BMR preview
@@ -333,7 +333,7 @@ export default function Profile() {
                                     className="peer sr-only"
                                 />
                                 <div className={`py-2.5 px-3 rounded-lg text-center text-sm font-medium transition-all duration-200 ${formData.gender === gender
-                                    ? 'bg-[#13ec13] shadow-sm text-black'
+                                    ? 'bg-black shadow-sm text-white'
                                     : 'text-gray-500 hover:text-gray-900'
                                     }`}>
                                     {gender.charAt(0).toUpperCase() + gender.slice(1)}
@@ -413,11 +413,8 @@ export default function Profile() {
                                     ? 'border-primary/50 bg-primary/5'
                                     : 'border-transparent'
                                     }`}>
-                                    <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 mr-4 transition-colors ${formData.activityLevel === level.value
-                                        ? 'bg-[#13ec13]/20'
-                                        : 'bg-gray-50'
-                                        }`}>
-                                        <span className="material-symbols-outlined text-[#13ec13]">{level.icon}</span>
+                                    <div className="h-10 w-10 rounded-full flex items-center justify-center shrink-0 mr-4">
+                                        <span className={`material-symbols-outlined ${level.color}`}>{level.icon}</span>
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2">
