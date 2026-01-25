@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { createProduct, getProduct, updateProduct, analyzeFood, analyzeText } from '../services/api';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { createProduct, getProduct, updateProduct, analyzeFood, analyzeText, updateEntry } from '../services/api';
 import { Toast } from '../components/ui/UIComponents';
 
 const CATEGORIES = ['Meal', 'Fruit', 'Coffee', 'Snack', 'Custom'];
@@ -9,8 +9,13 @@ const UNITS = ['g', 'ml', 'pc'];
 export default function EditProduct() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const fileInputRef = useRef(null);
     const isNew = !id;
+
+    // Check if we're editing a food entry from ActivityLog
+    const editFoodEntry = location.state?.editFoodEntry;
+    const isEditingEntry = !!editFoodEntry;
 
     const [loading, setLoading] = useState(false);
     const [autoFilling, setAutoFilling] = useState(false);
@@ -30,9 +35,28 @@ export default function EditProduct() {
         protein: 0,
         carbs: 0,
         fat: 0,
+        fiber: 0,
     });
 
     useEffect(() => {
+        // If editing a food entry from ActivityLog
+        if (editFoodEntry) {
+            setFormData({
+                name: editFoodEntry.data?.name || '',
+                emoji: '🍽️',
+                category: 'Meal',
+                servingValue: editFoodEntry.data?.portion || 100,
+                servingUnit: editFoodEntry.data?.unit || 'g',
+                calories: editFoodEntry.data?.calories || 0,
+                protein: editFoodEntry.data?.protein || 0,
+                carbs: editFoodEntry.data?.carbs || 0,
+                fat: editFoodEntry.data?.fat || 0,
+                fiber: editFoodEntry.data?.fiber || 0,
+            });
+            return;
+        }
+
+        // If editing an existing product
         if (id) {
             const fetchProduct = async () => {
                 try {
@@ -48,6 +72,7 @@ export default function EditProduct() {
                         protein: p.nutrition?.protein || 0,
                         carbs: p.nutrition?.carbs || 0,
                         fat: p.nutrition?.fat || 0,
+                        fiber: p.nutrition?.fiber || 0,
                     });
                     if (p.imageUrl) {
                         setImagePreview(p.imageUrl);
@@ -59,7 +84,7 @@ export default function EditProduct() {
             };
             fetchProduct();
         }
-    }, [id]);
+    }, [id, editFoodEntry]);
 
     const handleImageSelect = (e) => {
         const file = e.target.files[0];
@@ -147,6 +172,24 @@ export default function EditProduct() {
 
         setLoading(true);
         try {
+            // If editing a food entry from ActivityLog
+            if (isEditingEntry && editFoodEntry) {
+                const entryDate = new Date(editFoodEntry.time).toISOString().split('T')[0];
+                await updateEntry(editFoodEntry._id, {
+                    name: formData.name,
+                    calories: formData.calories,
+                    protein: formData.protein,
+                    carbs: formData.carbs,
+                    fat: formData.fat,
+                    fiber: formData.fiber,
+                    portion: formData.servingValue,
+                    unit: formData.servingUnit
+                }, entryDate);
+                setToast({ message: 'Entry updated!', type: 'success' });
+                setTimeout(() => navigate('/log'), 1000);
+                return;
+            }
+
             const productData = {
                 name: formData.name,
                 emoji: formData.emoji,
@@ -159,7 +202,8 @@ export default function EditProduct() {
                     calories: formData.calories,
                     protein: formData.protein,
                     carbs: formData.carbs,
-                    fat: formData.fat
+                    fat: formData.fat,
+                    fiber: formData.fiber
                 }
             };
 
@@ -173,7 +217,7 @@ export default function EditProduct() {
             setTimeout(() => navigate('/catalog'), 1000);
         } catch (err) {
             console.error('Save error:', err);
-            setToast({ message: 'Failed to save product', type: 'error' });
+            setToast({ message: 'Failed to save', type: 'error' });
         } finally {
             setLoading(false);
         }

@@ -213,7 +213,7 @@ export default function ActivityLog() {
                                                 <div className="flex items-center gap-1">
                                                     {entry.type === 'food' ? (
                                                         <button
-                                                            onClick={() => navigate('/analyze', { state: { editEntry: entry } })}
+                                                            onClick={() => navigate('/catalog/new', { state: { editFoodEntry: entry } })}
                                                             className="size-8 flex items-center justify-center rounded-full text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
                                                         >
                                                             <span className="material-symbols-outlined text-[18px]">edit</span>
