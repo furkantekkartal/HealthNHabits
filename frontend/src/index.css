@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+/* ========================================
+   LIGHT MODE THEME - Force Light Mode
+   ======================================== */
+
+:root {
+  --color-primary: #13ec13;
+  --color-primary-dark: #0fb80f;
+  --color-background-light: #f6f8f6;
+  --color-background-dark: #102210;
+  --color-surface-light: #ffffff;
+  --color-surface-dark: #1a2e1a;
+  --color-card-light: #ffffff;
+  --color-card-dark: #1a2e1a;
+  color-scheme: light;
+}
+
+/* Base Styles */
+html,
+body,
+#root {
+  font-family: "Inter", sans-serif;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f6f8f6;
+  color: #102210;
+}
+
+/* DISABLE DARK MODE COMPLETELY */
+/* Override all dark: prefixed Tailwind classes */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: light;
+  }
+
+  html,
+  body,
+  #root {
+    background-color: #f6f8f6;
+    color: #102210;
+  }
+}
+
+/* Force light mode color mappings */
+.bg-background-light,
+.dark\:bg-background-dark {
+  background-color: #f6f8f6 !important;
+}
+
+.bg-card-light,
+.dark\:bg-card-dark {
+  background-color: #ffffff !important;
+}
+
+.dark\:bg-gray-700,
+.dark\:bg-gray-800 {
+  background-color: #e5e7eb !important;
+}
+
+.dark\:text-white,
+.dark\:text-gray-200,
+.dark\:text-gray-300 {
+  color: inherit !important;
+}
+
+.dark\:text-gray-400,
+.dark\:text-gray-500 {
+  color: #6b7280 !important;
+}
+
+.dark\:border-gray-800,
+.dark\:border-gray-700 {
+  border-color: #e5e7eb !important;
+}
+
+/* Hide scrollbar for clean UI */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe area padding for mobile */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+
+/* Animations */
+@keyframes slide-up {
+  from {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
+/* Page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}

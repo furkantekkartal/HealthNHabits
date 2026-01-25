@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Physical Profile</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13",
+                        "background-light": "#f8fcf8",
+                        "background-dark": "#102210",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1a2e1a",
+                        "text-main-light": "#0d1b0d",
+                        "text-main-dark": "#e0e6e0",
+                        "text-sub-light": "#4b5563",
+                        "text-sub-dark": "#9ca3af",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-main-light dark:text-text-main-dark min-h-screen flex flex-col antialiased">
+<!-- Sticky Header -->
+<header class="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
+<div class="flex items-center p-4 h-16">
+<button class="flex items-center justify-center w-10 h-10 -ml-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all text-text-main-light dark:text-text-main-dark">
+<span class="material-symbols-outlined text-[24px]">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold leading-tight flex-1 text-center pr-8">Physical Profile</h1>
+</div>
+<!-- Progress Bar -->
+<div class="px-4 pb-2">
+<div class="flex justify-between text-xs font-medium text-text-sub-light dark:text-text-sub-dark mb-1">
+<span>Profile</span>
+<span>Step 1 of 3</span>
+</div>
+<div class="h-1.5 w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 33%"></div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 w-full max-w-md mx-auto p-4 flex flex-col gap-6 pb-24">
+<!-- Header Section -->
+<div>
+<h2 class="text-2xl font-bold tracking-tight mb-2">About You</h2>
+<p class="text-text-sub-light dark:text-text-sub-dark text-base leading-relaxed">
+                Let's calibrate your baseline measurements for better AI insights.
+            </p>
+</div>
+<!-- Gender Selector -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-text-main-light dark:text-text-main-dark">Gender</label>
+<div class="flex p-1 bg-gray-100 dark:bg-surface-dark rounded-xl">
+<label class="flex-1 relative cursor-pointer group">
+<input checked="" class="peer sr-only" name="gender" type="radio" value="male"/>
+<div class="py-2.5 px-3 rounded-lg text-center text-sm font-medium transition-all duration-200 peer-checked:bg-white dark:peer-checked:bg-gray-700 peer-checked:shadow-sm peer-checked:text-text-main-light dark:peer-checked:text-white text-text-sub-light dark:text-text-sub-dark hover:text-text-main-light dark:hover:text-white">
+                        Male
+                    </div>
+</label>
+<label class="flex-1 relative cursor-pointer group">
+<input class="peer sr-only" name="gender" type="radio" value="female"/>
+<div class="py-2.5 px-3 rounded-lg text-center text-sm font-medium transition-all duration-200 peer-checked:bg-white dark:peer-checked:bg-gray-700 peer-checked:shadow-sm peer-checked:text-text-main-light dark:peer-checked:text-white text-text-sub-light dark:text-text-sub-dark hover:text-text-main-light dark:hover:text-white">
+                        Female
+                    </div>
+</label>
+<label class="flex-1 relative cursor-pointer group">
+<input class="peer sr-only" name="gender" type="radio" value="other"/>
+<div class="py-2.5 px-3 rounded-lg text-center text-sm font-medium transition-all duration-200 peer-checked:bg-white dark:peer-checked:bg-gray-700 peer-checked:shadow-sm peer-checked:text-text-main-light dark:peer-checked:text-white text-text-sub-light dark:text-text-sub-dark hover:text-text-main-light dark:hover:text-white">
+                        Other
+                    </div>
+</label>
+</div>
+</div>
+<!-- Birth Year -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-text-main-light dark:text-text-main-dark" for="birthyear">Birth Year</label>
+<div class="relative">
+<input class="w-full bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5 text-base outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600 appearance-none" id="birthyear" placeholder="YYYY" type="number"/>
+<span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-400 pointer-events-none">calendar_month</span>
+</div>
+</div>
+<!-- Height & Weight Grid -->
+<div class="grid grid-cols-2 gap-4">
+<!-- Height -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-text-main-light dark:text-text-main-dark">Height</label>
+<div class="relative flex items-center bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary/50 focus-within:border-primary transition-all">
+<input class="w-full bg-transparent border-none p-3.5 text-base outline-none placeholder:text-gray-400 dark:placeholder:text-gray-600 appearance-none" placeholder="175" type="number"/>
+<span class="absolute right-12 text-gray-400 text-sm pointer-events-none">cm</span>
+<div class="h-6 w-[1px] bg-gray-200 dark:bg-gray-700 mx-1"></div>
+<button class="pr-3 pl-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors">FT</button>
+</div>
+</div>
+<!-- Weight -->
+<div class="space-y-2">
+<label class="text-sm font-semibold text-text-main-light dark:text-text-main-dark">Weight</label>
+<div class="relative flex items-center bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary/50 focus-within:border-primary transition-all">
+<input class="w-full bg-transparent border-none p-3.5 text-base outline-none placeholder:text-gray-400 dark:placeholder:text-gray-600 appearance-none" placeholder="70" type="number"/>
+<span class="absolute right-12 text-gray-400 text-sm pointer-events-none">kg</span>
+<div class="h-6 w-[1px] bg-gray-200 dark:bg-gray-700 mx-1"></div>
+<button class="pr-3 pl-1 text-xs font-semibold text-primary hover:text-primary/80 transition-colors">LB</button>
+</div>
+</div>
+</div>
+<!-- Activity Level -->
+<div class="space-y-3 pt-2">
+<label class="text-sm font-semibold text-text-main-light dark:text-text-main-dark">Activity Level</label>
+<div class="flex flex-col gap-3">
+<!-- Sedentary -->
+<label class="relative group cursor-pointer">
+<input class="peer sr-only" name="activity" type="radio" value="sedentary"/>
+<div class="flex items-center p-4 bg-white dark:bg-surface-dark border-2 border-transparent peer-checked:border-primary/50 peer-checked:bg-primary/5 dark:peer-checked:bg-primary/10 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md">
+<div class="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 peer-checked:bg-primary/20 peer-checked:text-primary-dark flex items-center justify-center shrink-0 mr-4 transition-colors">
+<span class="material-symbols-outlined">chair</span>
+</div>
+<div class="flex-1">
+<h3 class="font-semibold text-sm text-text-main-light dark:text-text-main-dark">Sedentary</h3>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark mt-0.5">Little to no exercise, desk job</p>
+</div>
+<div class="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 peer-checked:border-primary peer-checked:bg-primary flex items-center justify-center transition-all">
+<div class="w-2 h-2 rounded-full bg-black scale-0 peer-checked:scale-100 transition-transform"></div>
+</div>
+</div>
+</label>
+<!-- Lightly Active -->
+<label class="relative group cursor-pointer">
+<input class="peer sr-only" name="activity" type="radio" value="light"/>
+<div class="flex items-center p-4 bg-white dark:bg-surface-dark border-2 border-transparent peer-checked:border-primary/50 peer-checked:bg-primary/5 dark:peer-checked:bg-primary/10 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md">
+<div class="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 peer-checked:bg-primary/20 peer-checked:text-primary-dark flex items-center justify-center shrink-0 mr-4 transition-colors">
+<span class="material-symbols-outlined">directions_walk</span>
+</div>
+<div class="flex-1">
+<h3 class="font-semibold text-sm text-text-main-light dark:text-text-main-dark">Lightly Active</h3>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark mt-0.5">Light exercise 1-3 days/week</p>
+</div>
+<div class="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 peer-checked:border-primary peer-checked:bg-primary flex items-center justify-center transition-all">
+<div class="w-2 h-2 rounded-full bg-black scale-0 peer-checked:scale-100 transition-transform"></div>
+</div>
+</div>
+</label>
+<!-- Moderately Active -->
+<label class="relative group cursor-pointer">
+<input checked="" class="peer sr-only" name="activity" type="radio" value="moderate"/>
+<div class="flex items-center p-4 bg-white dark:bg-surface-dark border-2 border-transparent peer-checked:border-primary/50 peer-checked:bg-primary/5 dark:peer-checked:bg-primary/10 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md">
+<div class="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 peer-checked:bg-primary/20 peer-checked:text-primary-dark flex items-center justify-center shrink-0 mr-4 transition-colors">
+<span class="material-symbols-outlined text-gray-900 dark:text-white">fitness_center</span>
+</div>
+<div class="flex-1">
+<h3 class="font-semibold text-sm text-text-main-light dark:text-text-main-dark">Active</h3>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark mt-0.5">Moderate exercise 3-5 days/week</p>
+</div>
+<div class="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 peer-checked:border-primary peer-checked:bg-primary flex items-center justify-center transition-all">
+<div class="w-2 h-2 rounded-full bg-black scale-0 peer-checked:scale-100 transition-transform"></div>
+</div>
+</div>
+</label>
+<!-- Very Active -->
+<label class="relative group cursor-pointer">
+<input class="peer sr-only" name="activity" type="radio" value="heavy"/>
+<div class="flex items-center p-4 bg-white dark:bg-surface-dark border-2 border-transparent peer-checked:border-primary/50 peer-checked:bg-primary/5 dark:peer-checked:bg-primary/10 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md">
+<div class="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 peer-checked:bg-primary/20 peer-checked:text-primary-dark flex items-center justify-center shrink-0 mr-4 transition-colors">
+<span class="material-symbols-outlined">bolt</span>
+</div>
+<div class="flex-1">
+<h3 class="font-semibold text-sm text-text-main-light dark:text-text-main-dark">Very Active</h3>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark mt-0.5">Hard exercise 6-7 days/week</p>
+</div>
+<div class="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 peer-checked:border-primary peer-checked:bg-primary flex items-center justify-center transition-all">
+<div class="w-2 h-2 rounded-full bg-black scale-0 peer-checked:scale-100 transition-transform"></div>
+</div>
+</div>
+</label>
+</div>
+</div>
+</main>
+<!-- Footer Action -->
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-background-light dark:bg-background-dark/80 backdrop-blur-md border-t border-gray-100 dark:border-gray-800 z-40">
+<div class="max-w-md mx-auto">
+<button class="w-full bg-primary hover:bg-[#0fd60f] active:scale-[0.98] text-black font-bold py-4 rounded-xl shadow-lg shadow-primary/25 transition-all flex items-center justify-center gap-2">
+<span>Save Profile</span>
+<span class="material-symbols-outlined text-[20px]">check</span>
+</button>
+</div>
+</div>
+</body></html>

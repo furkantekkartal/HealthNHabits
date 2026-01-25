@@ -1,0 +1,375 @@
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Daily Health Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102210",
+                        "card-light": "#ffffff",
+                        "card-dark": "#1a2e1a",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        .radial-progress-bg {
+            background: conic-gradient(var(--tw-gradient-stops));
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#102210] dark:text-[#f0fdf0] font-display min-h-screen relative overflow-x-hidden pb-32">
+<header class="flex p-6 items-center justify-between sticky top-0 z-10 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md">
+<div class="flex items-center gap-4">
+<div class="h-12 w-12 rounded-full bg-gray-200 dark:bg-gray-700 bg-center bg-cover border-2 border-primary" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDVFAfAx1VIyQv47xDtuNR49omMSXWamQO62GfNJYra5mbv4_eJ4Wv4XVekmH_z87oO8wI1TrGIPCXuiSwrIPKZd6QGpeuZccaHxA6Hy7aj3GH26x8wRnIVKUvuV2ZzMAol4ETZmukqltUSgkdQtNHJ7YVhqASXvMoh1gY0gfsC0i7XX_kT7HUR-my2tthg6BpSttrBCgUDIeJ9m-mNIBRdQXnO571qFVlftzTs7M03VDNkmgz35zWi_gXt7TbjGOfCoyxuFP1UlSot");'></div>
+<div class="flex flex-col">
+<p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Good Morning,</p>
+<h2 class="text-xl font-bold leading-tight">Alex Johnson</h2>
+</div>
+</div>
+<div class="flex items-center justify-center h-10 w-10 rounded-full bg-white dark:bg-card-dark shadow-sm border border-gray-100 dark:border-gray-800">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300">notifications</span>
+</div>
+</header>
+<div class="px-6 pb-2">
+<div class="flex items-center justify-between bg-card-light dark:bg-card-dark p-3 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<button class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+<span class="material-symbols-outlined text-gray-500">chevron_left</span>
+</button>
+<div class="flex flex-col items-center">
+<span class="text-xs font-semibold uppercase tracking-wider text-primary">Today</span>
+<span class="text-sm font-bold">Wed, Oct 24</span>
+</div>
+<button class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+<span class="material-symbols-outlined text-gray-500">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center py-6 relative">
+<a class="relative w-72 h-72 flex items-center justify-center cursor-pointer active:scale-95 transition-transform duration-200" href="#">
+<div class="absolute inset-4 rounded-full border border-gray-200 dark:border-gray-800/50"></div>
+<svg class="absolute inset-0 w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+<circle class="text-gray-200 dark:text-gray-800" cx="50" cy="50" fill="none" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-orange-500 transition-all duration-1000 ease-out" cx="50" cy="50" fill="none" r="40" stroke="currentColor" stroke-dasharray="87.96 251.32" stroke-dashoffset="0" stroke-linecap="round" stroke-width="8"></circle>
+<circle class="text-blue-500 transition-all duration-1000 ease-out" cx="50" cy="50" fill="none" r="40" stroke="currentColor" stroke-dasharray="62.83 251.32" stroke-dashoffset="-87.96" stroke-linecap="round" stroke-width="8"></circle>
+<circle class="text-emerald-500 transition-all duration-1000 ease-out" cx="50" cy="50" fill="none" r="40" stroke="currentColor" stroke-dasharray="100.53 251.32" stroke-dashoffset="-150.79" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="flex flex-col items-center justify-center z-10 text-center">
+<span class="material-symbols-outlined text-emerald-500 mb-1 text-3xl">monitor_heart</span>
+<h1 class="text-3xl font-extrabold tracking-tighter text-[#102210] dark:text-white">1,250 <span class="text-lg">kcal</span></h1>
+<p class="text-lg font-bold text-gray-700 dark:text-gray-300 mt-0.5">≈ 140g Fat</p>
+<div class="mt-2 text-[10px] text-gray-400 uppercase tracking-widest font-semibold">Energy Gap Insights</div>
+</div>
+</a>
+<div class="mt-2 flex items-center gap-4 px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-full">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-orange-500"></div>
+<span class="text-xs font-medium text-gray-600 dark:text-gray-300">Eaten</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-blue-500"></div>
+<span class="text-xs font-medium text-gray-600 dark:text-gray-300">Activity</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+<span class="text-xs font-medium text-gray-600 dark:text-gray-300">Remaining</span>
+</div>
+</div>
+<div class="w-full px-6 mt-6">
+<div class="bg-card-light dark:bg-card-dark p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-4">
+<div class="grid grid-cols-2 gap-x-6 gap-y-3">
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between items-center text-[11px] font-bold">
+<span class="text-gray-500 uppercase tracking-wider">Carbs</span>
+<span class="text-gray-700 dark:text-gray-300">120g / 250g</span>
+</div>
+<div class="h-1.5 w-full bg-blue-100 dark:bg-blue-900/30 rounded-full overflow-hidden">
+<div class="h-full bg-sky-400 rounded-full" style="width: 48%"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between items-center text-[11px] font-bold">
+<span class="text-gray-500 uppercase tracking-wider">Protein</span>
+<span class="text-gray-700 dark:text-gray-300">85g / 160g</span>
+</div>
+<div class="h-1.5 w-full bg-purple-100 dark:bg-purple-900/30 rounded-full overflow-hidden">
+<div class="h-full bg-purple-500 rounded-full" style="width: 53%"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between items-center text-[11px] font-bold">
+<span class="text-gray-500 uppercase tracking-wider">Fat</span>
+<span class="text-gray-700 dark:text-gray-300">42g / 70g</span>
+</div>
+<div class="h-1.5 w-full bg-yellow-100 dark:bg-yellow-900/30 rounded-full overflow-hidden">
+<div class="h-full bg-yellow-400 rounded-full" style="width: 60%"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between items-center text-[11px] font-bold">
+<span class="text-gray-500 uppercase tracking-wider">Fiber</span>
+<span class="text-gray-700 dark:text-gray-300">18g / 35g</span>
+</div>
+<div class="h-1.5 w-full bg-emerald-100 dark:bg-emerald-900/30 rounded-full overflow-hidden">
+<div class="h-full bg-emerald-500 rounded-full" style="width: 51%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="px-6 mb-6">
+<div class="bg-card-light dark:bg-card-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-gray-400">equalizer</span>
+<h3 class="text-base font-bold text-gray-900 dark:text-white">Energy Gap</h3>
+</div>
+<span class="text-xs font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 px-2.5 py-1 rounded-lg">1,250 Deficit</span>
+</div>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+<span class="flex items-center gap-1">Total Output <span class="text-[10px] font-normal text-gray-400">(BMR + Burned)</span></span>
+<span>2,650 kcal</span>
+</div>
+<div class="h-3 w-full rounded-full flex overflow-hidden bg-gray-100 dark:bg-gray-800">
+<div class="h-full bg-gray-300 dark:bg-gray-600" style="width: 86.8%"></div>
+<div class="h-full bg-blue-500" style="width: 13.2%"></div>
+</div>
+<div class="flex justify-between text-[10px] text-gray-400 mt-1.5 px-0.5">
+<div class="flex items-center gap-1.5">
+<div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+<span>BMR (2,300)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<div class="w-2 h-2 rounded-full bg-blue-500"></div>
+<span>Activity (350)</span>
+</div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+<span>Total Consumed</span>
+<span>1,400 kcal</span>
+</div>
+<div class="h-3 w-full rounded-full flex overflow-hidden bg-gray-100 dark:bg-gray-800 relative">
+<div class="h-full bg-orange-500 absolute left-0 top-0 rounded-full" style="width: 52.8%"></div>
+</div>
+<div class="flex justify-start text-[10px] text-gray-400 mt-1.5 px-0.5">
+<div class="flex items-center gap-1.5">
+<div class="w-2 h-2 rounded-full bg-orange-500"></div>
+<span>Food &amp; Drink</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="px-6 grid grid-cols-2 gap-4 mb-6">
+<div class="bg-card-light dark:bg-card-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-3">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600 dark:text-orange-400">
+<span class="material-symbols-outlined text-[18px]">restaurant</span>
+</div>
+<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Eaten</span>
+</div>
+<div>
+<p class="text-2xl font-bold">1,400</p>
+<p class="text-xs text-gray-400">kcal</p>
+</div>
+<div class="w-full bg-gray-100 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden mt-1">
+<div class="bg-orange-500 h-full rounded-full" style="width: 52%"></div>
+</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col gap-3">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+<span class="material-symbols-outlined text-[18px]">directions_run</span>
+</div>
+<span class="text-sm font-medium text-gray-500 dark:text-gray-400">Burned</span>
+</div>
+<div>
+<p class="text-2xl font-bold">350</p>
+<p class="text-xs text-gray-400">kcal</p>
+</div>
+<div class="w-full bg-gray-100 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden mt-1">
+<div class="bg-blue-500 h-full rounded-full" style="width: 30%"></div>
+</div>
+</div>
+</div>
+<div class="px-6 mb-6">
+<div class="bg-card-light dark:bg-card-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+<span class="material-symbols-outlined">monitor_weight</span>
+</div>
+<div>
+<p class="text-base font-bold">Weight</p>
+<p class="text-xs text-gray-500 dark:text-gray-400">Last 7 Days</p>
+</div>
+</div>
+<div class="text-right">
+<span class="text-lg font-bold text-emerald-600 dark:text-emerald-400">72.4</span>
+<span class="text-xs text-gray-400">kg</span>
+</div>
+</div>
+<div class="relative w-full h-40 mt-2">
+<div class="absolute inset-0 flex flex-col h-32">
+<div class="flex-[1] bg-orange-100/30 dark:bg-orange-900/10 border-b border-dashed border-orange-200/50 dark:border-orange-900/30 relative">
+<span class="absolute right-0 top-1 text-[8px] font-bold uppercase tracking-tighter text-orange-500/70 pr-2">Overweight</span>
+</div>
+<div class="flex-[1.5] bg-emerald-50/40 dark:bg-emerald-900/10 border-b border-dashed border-emerald-100/50 dark:border-emerald-900/30 relative">
+<span class="absolute right-0 top-1 text-[8px] font-bold uppercase tracking-tighter text-emerald-500/70 pr-2">Normal</span>
+</div>
+<div class="flex-[1] bg-blue-50/40 dark:bg-blue-900/10 relative">
+<span class="absolute right-0 top-1 text-[8px] font-bold uppercase tracking-tighter text-blue-500/70 pr-2">Underweight</span>
+</div>
+</div>
+<div class="absolute inset-0 h-32">
+<svg class="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 300 100">
+<defs>
+<linearGradient id="weightGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#10b981" stop-opacity="0.15"></stop>
+<stop offset="100%" stop-color="#10b981" stop-opacity="0"></stop>
+</linearGradient>
+</defs>
+<path d="M0,100 L0,60 L50,55 L100,65 L150,45 L200,40 L250,35 L300,38 L300,100 Z" fill="url(#weightGradient)"></path>
+<path d="M0,60 L50,55 L100,65 L150,45 L200,40 L250,35 L300,38" fill="none" stroke="#10b981" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+<circle cx="0" cy="60" fill="#ffffff" r="2.5" stroke="#10b981" stroke-width="2"></circle>
+<circle cx="50" cy="55" fill="#ffffff" r="2.5" stroke="#10b981" stroke-width="2"></circle>
+<circle cx="100" cy="65" fill="#ffffff" r="2.5" stroke="#10b981" stroke-width="2"></circle>
+<circle cx="150" cy="45" fill="#ffffff" r="2.5" stroke="#10b981" stroke-width="2"></circle>
+<circle cx="200" cy="40" fill="#ffffff" r="2.5" stroke="#10b981" stroke-width="2"></circle>
+<circle cx="250" cy="35" fill="#ffffff" r="2.5" stroke="#10b981" stroke-width="2"></circle>
+<circle cx="300" cy="38" fill="#10b981" r="4" stroke="#ffffff" stroke-width="2.5"></circle>
+</svg>
+</div>
+<div class="flex justify-between w-full text-[10px] text-gray-400 absolute bottom-0 pt-2 border-t border-gray-50 dark:border-gray-800/50">
+<span>M</span>
+<span>T</span>
+<span>W</span>
+<span>T</span>
+<span>F</span>
+<span>S</span>
+<span>S</span>
+</div>
+</div>
+</div>
+</div>
+<div class="px-6 flex flex-col gap-4 mb-24">
+<div class="bg-card-light dark:bg-card-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-cyan-100 dark:bg-cyan-900/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<div>
+<p class="text-base font-bold">Water Intake</p>
+<p class="text-xs text-gray-500 dark:text-gray-400">Daily Goal: 2,000ml</p>
+</div>
+</div>
+<div class="text-right">
+<span class="text-lg font-bold text-cyan-600 dark:text-cyan-400">1,250</span>
+<span class="text-xs text-gray-400">ml</span>
+</div>
+</div>
+<div class="flex justify-between gap-1 mt-2">
+<div class="h-8 flex-1 bg-cyan-500 rounded-md opacity-100"></div>
+<div class="h-8 flex-1 bg-cyan-500 rounded-md opacity-100"></div>
+<div class="h-8 flex-1 bg-cyan-500 rounded-md opacity-100"></div>
+<div class="h-8 flex-1 bg-cyan-500 rounded-md opacity-100"></div>
+<div class="h-8 flex-1 bg-cyan-500/20 dark:bg-cyan-900/20 rounded-md"></div>
+<div class="h-8 flex-1 bg-cyan-500/20 dark:bg-cyan-900/20 rounded-md"></div>
+</div>
+</div>
+<div class="bg-card-light dark:bg-card-dark p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
+<span class="material-symbols-outlined">footprint</span>
+</div>
+<div>
+<p class="text-base font-bold">Steps</p>
+<p class="text-xs text-gray-500 dark:text-gray-400">Goal: 10,000</p>
+</div>
+</div>
+<div class="text-right">
+<span class="text-lg font-bold text-purple-600 dark:text-purple-400">6,540</span>
+</div>
+</div>
+<div class="relative h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="absolute top-0 left-0 h-full bg-purple-500 rounded-full" style="width: 65%;"></div>
+</div>
+</div>
+</div>
+<div class="fixed bottom-24 right-6 z-20 flex flex-col gap-3 items-end">
+<button class="flex items-center gap-2 group">
+<span class="bg-gray-900 dark:bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                Log Weight
+            </span>
+<div class="flex items-center justify-center w-10 h-10 bg-emerald-500 rounded-full shadow-lg shadow-emerald-500/40 hover:scale-105 transition-transform active:scale-95 text-white">
+<span class="material-symbols-outlined text-[20px]">monitor_weight</span>
+</div>
+</button>
+<button class="group relative flex items-center justify-center w-14 h-14 bg-primary rounded-full shadow-lg shadow-primary/40 hover:scale-105 transition-transform active:scale-95">
+<span class="material-symbols-outlined text-[#102210] text-3xl font-bold">add</span>
+</button>
+</div>
+<nav class="fixed bottom-0 w-full z-30 border-t border-gray-200 dark:border-gray-800 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-lg pb-safe">
+<div class="flex justify-between items-center px-6 py-3">
+<a class="flex flex-col items-center gap-1 min-w-[60px]" href="#">
+<span class="material-symbols-outlined text-primary text-[28px] fill-1">home</span>
+<span class="text-[10px] font-medium text-primary">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 min-w-[60px] group" href="#">
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500 group-hover:text-primary text-[28px] transition-colors">menu_book</span>
+<span class="text-[10px] font-medium text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors">Diary</span>
+</a>
+<a class="flex flex-col items-center gap-1 min-w-[60px] group" href="#">
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500 group-hover:text-primary text-[28px] transition-colors">bar_chart</span>
+<span class="text-[10px] font-medium text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors">Reports</span>
+</a>
+<a class="flex flex-col items-center gap-1 min-w-[60px] group" href="#">
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500 group-hover:text-primary text-[28px] transition-colors">settings</span>
+<span class="text-[10px] font-medium text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors">Settings</span>
+</a>
+</div>
+<div class="h-5"></div>
+</nav>
+
+</body></html>

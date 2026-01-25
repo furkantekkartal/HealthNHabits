@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Edit Product Details</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102210",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-white transition-colors duration-200">
+<div class="relative flex flex-col min-h-screen w-full max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-2xl overflow-hidden">
+<!-- Header -->
+<header class="flex items-center justify-between p-4 sticky top-0 z-10 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-2xl text-gray-900 dark:text-white">arrow_back_ios_new</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight">Edit Product</h1>
+<button class="text-primary font-bold text-base hover:opacity-80 transition-opacity">
+                Save
+            </button>
+</header>
+<!-- Main Scrollable Content -->
+<main class="flex-1 overflow-y-auto px-4 pb-24">
+<!-- Product Photo -->
+<div class="flex flex-col items-center py-6">
+<div class="relative group cursor-pointer">
+<div class="w-32 h-32 rounded-2xl bg-cover bg-center shadow-lg border-4 border-white dark:border-[#1a331a]" data-alt="Fresh green smoothie with avocado and mint leaves" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCk3ZqnktsBaiK6yLfJSB89qsy8jJBhEbr2Ioou-gU4wKYhjiErlCfCdZjhJJaDHLIhnrjiFpVeC2psVWkwCusaSE3mwrI4Zj8LGKmsLbPbq3vgbzWq4g9vowGtlPA-7QtnA3lnRmezx2j0xzm-MLjisg8sV477uuNKNiQPPxua0Pt74r9eNBktECJCdhNuGwm7Sy0JsoZLnHaPlaMdg8U2UpBpqSgeG3laSW2F7PkySXGPqHMywvSplNv0O7LQxNEoo6nQpAPAfebR');">
+</div>
+<div class="absolute inset-0 bg-black/30 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-white text-3xl">edit</span>
+</div>
+<button class="absolute -bottom-2 -right-2 bg-primary text-black p-2 rounded-full shadow-md flex items-center justify-center hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-xl">photo_camera</span>
+</button>
+</div>
+<p class="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">Tap to edit photo</p>
+</div>
+<!-- Basic Info Form -->
+<div class="space-y-6">
+<!-- Product Identity -->
+<div class="space-y-4">
+<div class="flex flex-col gap-1">
+<label class="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">Product Name</label>
+<input class="w-full bg-white dark:bg-[#1a2e1a] border border-gray-200 dark:border-[#2a4e2a] rounded-xl px-4 h-14 text-base focus:ring-2 focus:ring-primary focus:border-primary dark:focus:border-primary outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600" placeholder="e.g., Banana Smoothie" type="text" value="Avocado Green Smoothie"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">Category</label>
+<div class="relative">
+<select class="w-full appearance-none bg-white dark:bg-[#1a2e1a] border border-gray-200 dark:border-[#2a4e2a] rounded-xl px-4 h-14 text-base focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-gray-900 dark:text-white">
+<option>Smoothies &amp; Shakes</option>
+<option>Juices</option>
+<option>Coffee &amp; Tea</option>
+<option>Snacks</option>
+</select>
+<span class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 dark:text-gray-400">
+<span class="material-symbols-outlined">expand_more</span>
+</span>
+</div>
+</div>
+</div>
+<!-- Variants & Size -->
+<div class="space-y-3">
+<h3 class="text-lg font-bold text-gray-900 dark:text-white">Serving Size</h3>
+<!-- Variant Toggles -->
+<div class="grid grid-cols-3 gap-2 bg-gray-100 dark:bg-[#152b15] p-1 rounded-xl">
+<button class="py-2.5 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Small</button>
+<button class="py-2.5 rounded-lg text-sm font-bold bg-white dark:bg-[#1a2e1a] text-black dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10 transition-all">Medium</button>
+<button class="py-2.5 rounded-lg text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Large</button>
+</div>
+<!-- Volume Input -->
+<div class="flex gap-3 pt-2">
+<div class="flex-1 flex flex-col gap-1">
+<label class="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">Volume</label>
+<input class="w-full bg-white dark:bg-[#1a2e1a] border border-gray-200 dark:border-[#2a4e2a] rounded-xl px-4 h-12 text-base focus:ring-2 focus:ring-primary focus:border-primary outline-none" type="number" value="330"/>
+</div>
+<div class="w-28 flex flex-col gap-1">
+<label class="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">Unit</label>
+<div class="relative">
+<select class="w-full appearance-none bg-white dark:bg-[#1a2e1a] border border-gray-200 dark:border-[#2a4e2a] rounded-xl px-4 h-12 text-base focus:ring-2 focus:ring-primary focus:border-primary outline-none">
+<option>ml</option>
+<option>g</option>
+<option>oz</option>
+</select>
+<span class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500">
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Nutrition Grid -->
+<div class="space-y-3 pt-2">
+<div class="flex items-center justify-between">
+<h3 class="text-lg font-bold text-gray-900 dark:text-white">Macros <span class="text-sm font-normal text-gray-500 dark:text-gray-400 ml-1">(per serving)</span></h3>
+<button class="text-xs text-primary font-semibold hover:underline">Auto-fill</button>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<!-- Calories -->
+<div class="p-3 rounded-xl bg-white dark:bg-[#1a2e1a] border border-gray-200 dark:border-[#2a4e2a] focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all">
+<div class="flex items-center gap-1.5 mb-1">
+<span class="material-symbols-outlined text-orange-500 text-lg">local_fire_department</span>
+<label class="text-xs font-semibold text-gray-500 dark:text-gray-400">Calories</label>
+</div>
+<div class="flex items-baseline gap-1">
+<input class="w-full bg-transparent border-none p-0 text-2xl font-bold text-gray-900 dark:text-white focus:ring-0 placeholder:text-gray-300" type="number" value="240"/>
+<span class="text-xs text-gray-400 font-medium">kcal</span>
+</div>
+</div>
+<!-- Protein -->
+<div class="p-3 rounded-xl bg-white dark:bg-[#1a2e1a] border border-gray-200 dark:border-[#2a4e2a] focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all">
+<div class="flex items-center gap-1.5 mb-1">
+<span class="material-symbols-outlined text-blue-500 text-lg">fitness_center</span>
+<label class="text-xs font-semibold text-gray-500 dark:text-gray-400">Protein</label>
+</div>
+<div class="flex items-baseline gap-1">
+<input class="w-full bg-transparent border-none p-0 text-2xl font-bold text-gray-900 dark:text-white focus:ring-0 placeholder:text-gray-300" type="number" value="12"/>
+<span class="text-xs text-gray-400 font-medium">g</span>
+</div>
+</div>
+<!-- Carbs -->
+<div class="p-3 rounded-xl bg-white dark:bg-[#1a2e1a] border border-gray-200 dark:border-[#2a4e2a] focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all">
+<div class="flex items-center gap-1.5 mb-1">
+<span class="material-symbols-outlined text-amber-500 text-lg">bakery_dining</span>
+<label class="text-xs font-semibold text-gray-500 dark:text-gray-400">Carbs</label>
+</div>
+<div class="flex items-baseline gap-1">
+<input class="w-full bg-transparent border-none p-0 text-2xl font-bold text-gray-900 dark:text-white focus:ring-0 placeholder:text-gray-300" type="number" value="34"/>
+<span class="text-xs text-gray-400 font-medium">g</span>
+</div>
+</div>
+<!-- Fat -->
+<div class="p-3 rounded-xl bg-white dark:bg-[#1a2e1a] border border-gray-200 dark:border-[#2a4e2a] focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all">
+<div class="flex items-center gap-1.5 mb-1">
+<span class="material-symbols-outlined text-yellow-500 text-lg">water_drop</span>
+<label class="text-xs font-semibold text-gray-500 dark:text-gray-400">Fat</label>
+</div>
+<div class="flex items-baseline gap-1">
+<input class="w-full bg-transparent border-none p-0 text-2xl font-bold text-gray-900 dark:text-white focus:ring-0 placeholder:text-gray-300" type="number" value="8"/>
+<span class="text-xs text-gray-400 font-medium">g</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Sticky Footer Action -->
+<div class="sticky bottom-0 left-0 right-0 p-4 bg-background-light dark:bg-background-dark border-t border-gray-100 dark:border-[#1a331a]">
+<button class="w-full bg-primary hover:bg-[#0fd60f] text-black font-bold text-lg h-14 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
+<span>Save Product</span>
+<span class="material-symbols-outlined text-xl">check</span>
+</button>
+</div>
+</div>
+</body></html>

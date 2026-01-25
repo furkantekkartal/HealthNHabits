@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Food Analysis</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13",
+                        "primary-dark": "#0fb80f", 
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102210",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1a2e1a",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-gray-100 dark:bg-black font-display text-gray-900 dark:text-gray-100">
+<!-- Mobile Container Wrapper -->
+<div class="mx-auto w-full max-w-md min-h-screen bg-background-light dark:bg-background-dark shadow-2xl relative flex flex-col overflow-hidden">
+<!-- Top App Bar -->
+<div class="flex items-center p-4 pt-6 pb-2 justify-between z-10 bg-background-light dark:bg-background-dark sticky top-0">
+<button class="text-gray-900 dark:text-white flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h2 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">Analysis Result</h2>
+</div>
+<!-- Scrollable Main Content -->
+<main class="flex-1 overflow-y-auto no-scrollbar pb-40">
+<!-- Header Image -->
+<div class="@container px-4 py-3">
+<div class="w-full bg-center bg-no-repeat bg-cover flex flex-col justify-end overflow-hidden rounded-2xl min-h-[220px] shadow-sm relative group" data-alt="Top down view of a healthy meal plate with chicken breast broccoli and brown rice" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCm3z9lpCZENlKsKJ3Uuxc1EsV-ol58COLTIrYgR1rwM8CeGWKt5IwLN3gvlQZMplJTxHfvWBTSE4xlia9L1NP5H7JcKRlKZt2W6uaaLbAqOrCZAV4JoGKJFS0KCjMa099MdP0kjV8HaCNi7VdDh_DxCkbkmdnhUUm09IT6DinGt8lN2tPCyTHFGylAmd21eu1V6tzgUJdDddep6BM70Axfi8RF3fVPVjafCT-MO5l3Q_n9TsgzAV20vTpmkE48KnRE-csg8sFPOFon");'>
+<!-- Gradient Overlay -->
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="relative z-10 p-4">
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/90 backdrop-blur-sm border border-primary/20 shadow-sm">
+<span class="material-symbols-outlined text-black text-[16px]">check_circle</span>
+<span class="text-xs font-bold text-black uppercase tracking-wide">Scan Complete</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Stats Summary -->
+<div class="px-4 py-2">
+<div class="bg-surface-light dark:bg-surface-dark rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-end justify-between mb-4 border-b border-gray-100 dark:border-gray-700 pb-4">
+<div>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase tracking-wider">Total Energy</p>
+<div class="flex items-baseline gap-1">
+<span class="text-gray-900 dark:text-white text-3xl font-bold leading-none">620</span>
+<span class="text-primary font-bold text-lg">kcal</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-lg">
+<span class="material-symbols-outlined text-[18px]">trending_up</span>
+<span class="text-xs font-bold">On Track</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-4 divide-x divide-gray-100 dark:divide-gray-700">
+<div class="flex flex-col gap-1 text-center px-1">
+<span class="text-gray-500 dark:text-gray-400 text-xs font-medium">Protein</span>
+<span class="text-gray-900 dark:text-white text-xl font-bold">45g</span>
+<div class="w-full h-1 bg-gray-100 dark:bg-gray-700 rounded-full mt-1 overflow-hidden">
+<div class="h-full bg-primary w-[70%] rounded-full"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1 text-center px-1">
+<span class="text-gray-500 dark:text-gray-400 text-xs font-medium">Carbs</span>
+<span class="text-gray-900 dark:text-white text-xl font-bold">60g</span>
+<div class="w-full h-1 bg-gray-100 dark:bg-gray-700 rounded-full mt-1 overflow-hidden">
+<div class="h-full bg-blue-400 w-[50%] rounded-full"></div>
+</div>
+</div>
+<div class="flex flex-col gap-1 text-center px-1">
+<span class="text-gray-500 dark:text-gray-400 text-xs font-medium">Fat</span>
+<span class="text-gray-900 dark:text-white text-xl font-bold">12g</span>
+<div class="w-full h-1 bg-gray-100 dark:bg-gray-700 rounded-full mt-1 overflow-hidden">
+<div class="h-full bg-yellow-400 w-[30%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Detected Items Header -->
+<div class="flex items-center justify-between px-4 pt-4 pb-2">
+<h3 class="text-gray-900 dark:text-white text-xl font-bold">Detected Items</h3>
+<button class="text-primary text-sm font-semibold flex items-center gap-1 hover:text-primary-dark">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                    Add Item
+                </button>
+</div>
+<!-- List Items -->
+<div class="flex flex-col gap-3 px-4">
+<!-- Item 1 -->
+<div class="bg-surface-light dark:bg-surface-dark p-3 rounded-2xl shadow-sm border border-transparent hover:border-primary/30 transition-colors">
+<div class="flex items-start gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-xl size-20 shrink-0" data-alt="Grilled chicken breast closeup" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDqB_OxvUYmzN5LvzoDA9ibvB7AlXJBLvExe1hiAnWLP6dkZM7O2ofAVxlQZRlq0dnWB40RbUkK2_IfYizb4-QlHganJClz8d_lxiOIGfKqdWI6RgLHKXyMytGeh9jn_ipLSmaoJPa4lGkecXBjBI54OXVVl1U1JQjofzqOEikQ_LtKusNHhRKkT8knl3TQz1sH4LQ9R2gOUDabMcQUNM4t-w3DNwk8aBOjdj8udD5BCkLBnkkTdDKl4WgKetRAAjkdesZMf5Qaz2R6");'>
+</div>
+<div class="flex flex-col flex-1 gap-2">
+<div class="flex justify-between items-start">
+<div class="w-full">
+<input class="bg-transparent border-none p-0 text-gray-900 dark:text-white font-semibold text-base w-full focus:ring-0 focus:border-b focus:border-primary placeholder-gray-400" type="text" value="Grilled Chicken Breast"/>
+<div class="flex items-center gap-2 mt-1">
+<input class="bg-transparent border-none p-0 text-primary font-bold text-sm w-8 focus:ring-0 text-right" type="text" value="248"/>
+<span class="text-gray-400 text-sm">kcal</span>
+</div>
+</div>
+<button class="text-gray-400 hover:text-red-500 transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+<div class="flex items-center justify-between mt-1 bg-gray-50 dark:bg-gray-800/50 p-1.5 rounded-lg">
+<span class="text-xs text-gray-500 dark:text-gray-400 font-medium ml-1">Portion</span>
+<div class="flex items-center gap-2">
+<button class="flex size-7 items-center justify-center rounded-md bg-white dark:bg-gray-700 shadow-sm text-gray-600 dark:text-gray-300 hover:text-primary hover:border-primary border border-gray-100 dark:border-gray-600 transition-all">
+<span class="material-symbols-outlined text-[16px]">remove</span>
+</button>
+<div class="flex items-baseline gap-1 min-w-[3rem] justify-center">
+<input class="w-8 p-0 text-center bg-transparent border-none focus:ring-0 font-bold text-gray-900 dark:text-white text-sm" type="number" value="150"/>
+<span class="text-xs text-gray-500 dark:text-gray-400">g</span>
+</div>
+<button class="flex size-7 items-center justify-center rounded-md bg-white dark:bg-gray-700 shadow-sm text-gray-600 dark:text-gray-300 hover:text-primary hover:border-primary border border-gray-100 dark:border-gray-600 transition-all">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="bg-surface-light dark:bg-surface-dark p-3 rounded-2xl shadow-sm border border-transparent hover:border-primary/30 transition-colors relative overflow-hidden">
+<!-- Confidence Warning (Optional Feature from prompt) -->
+<div class="absolute top-0 right-0">
+<div class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded-bl-lg flex items-center gap-1">
+<span class="material-symbols-outlined text-[10px]">warning</span> Check
+                         </div>
+</div>
+<div class="flex items-start gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-xl size-20 shrink-0" data-alt="Steamed broccoli florets" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBhqdDcmuAlk8y0AV8qTxo59dghTwgsP-uqCnH73GEMSwRT3ARUlxChqmecZhK-_rv9ELCYg5G42t7y-yQALsh0JQ4UvuAaKL8j6bBpVRgiLaLp5JhiiscBYw_pD-7li6bOJuOKtxs2zlZGMH8VWhVurfL3Z657bm0aQpWhrNBUoruhdTxq6M-wx-_H7UXPH0rBbe3USlQD1tBTrgNfZ8bFPw8ag24zll0X_OyIskUcoK3Y7QkAnUF5sPfjXupry4I1ipv2cwV_Sx_e");'>
+</div>
+<div class="flex flex-col flex-1 gap-2">
+<div class="flex justify-between items-start">
+<div class="w-full">
+<input class="bg-transparent border-none p-0 text-gray-900 dark:text-white font-semibold text-base w-full focus:ring-0 focus:border-b focus:border-primary" type="text" value="Steamed Broccoli"/>
+<div class="flex items-center gap-2 mt-1">
+<input class="bg-transparent border-none p-0 text-primary font-bold text-sm w-8 focus:ring-0 text-right" type="text" value="27"/>
+<span class="text-gray-400 text-sm">kcal</span>
+</div>
+</div>
+<button class="text-gray-400 hover:text-red-500 transition-colors p-1 mt-1">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+<div class="flex items-center justify-between mt-1 bg-gray-50 dark:bg-gray-800/50 p-1.5 rounded-lg">
+<span class="text-xs text-gray-500 dark:text-gray-400 font-medium ml-1">Portion</span>
+<div class="flex items-center gap-2">
+<button class="flex size-7 items-center justify-center rounded-md bg-white dark:bg-gray-700 shadow-sm text-gray-600 dark:text-gray-300 hover:text-primary hover:border-primary border border-gray-100 dark:border-gray-600 transition-all">
+<span class="material-symbols-outlined text-[16px]">remove</span>
+</button>
+<div class="flex items-baseline gap-1 min-w-[3rem] justify-center">
+<input class="w-8 p-0 text-center bg-transparent border-none focus:ring-0 font-bold text-gray-900 dark:text-white text-sm" type="number" value="80"/>
+<span class="text-xs text-gray-500 dark:text-gray-400">g</span>
+</div>
+<button class="flex size-7 items-center justify-center rounded-md bg-white dark:bg-gray-700 shadow-sm text-gray-600 dark:text-gray-300 hover:text-primary hover:border-primary border border-gray-100 dark:border-gray-600 transition-all">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="bg-surface-light dark:bg-surface-dark p-3 rounded-2xl shadow-sm border border-transparent hover:border-primary/30 transition-colors">
+<div class="flex items-start gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-xl size-20 shrink-0" data-alt="Brown rice in a bowl" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDwX90r40DrE1ovNvUhHtvkwmx0rH0xkfdXcU_DqBtsXDZeLM-53yctqQ_pFDtQZsCv920jcN0pRSewHvSbh19ehnImr519NVziRtGWtbwWDGHWD3raeJ1A4Kjb4FPnH83X6CbZx03bi68GxW85kOEvuttj08boL8QjGF6OdZsmhMMtIJhrmwkuVRUnT4xFPgnL7YIY4BXHzgU7V_P90S-D-nOp_NklzndLra8EaPFm4WXdunZwbfSqouOusI6UO83Be_d61kXWOS1y");'>
+</div>
+<div class="flex flex-col flex-1 gap-2">
+<div class="flex justify-between items-start">
+<div class="w-full">
+<input class="bg-transparent border-none p-0 text-gray-900 dark:text-white font-semibold text-base w-full focus:ring-0 focus:border-b focus:border-primary" type="text" value="Brown Rice"/>
+<div class="flex items-center gap-2 mt-1">
+<input class="bg-transparent border-none p-0 text-primary font-bold text-sm w-8 focus:ring-0 text-right" type="text" value="216"/>
+<span class="text-gray-400 text-sm">kcal</span>
+</div>
+</div>
+<button class="text-gray-400 hover:text-red-500 transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+<div class="flex items-center justify-between mt-1 bg-gray-50 dark:bg-gray-800/50 p-1.5 rounded-lg">
+<span class="text-xs text-gray-500 dark:text-gray-400 font-medium ml-1">Portion</span>
+<div class="flex items-center gap-2">
+<button class="flex size-7 items-center justify-center rounded-md bg-white dark:bg-gray-700 shadow-sm text-gray-600 dark:text-gray-300 hover:text-primary hover:border-primary border border-gray-100 dark:border-gray-600 transition-all">
+<span class="material-symbols-outlined text-[16px]">remove</span>
+</button>
+<div class="flex items-baseline gap-1 min-w-[3rem] justify-center">
+<input class="w-8 p-0 text-center bg-transparent border-none focus:ring-0 font-bold text-gray-900 dark:text-white text-sm" type="number" value="1"/>
+<span class="text-xs text-gray-500 dark:text-gray-400">cup</span>
+</div>
+<button class="flex size-7 items-center justify-center rounded-md bg-white dark:bg-gray-700 shadow-sm text-gray-600 dark:text-gray-300 hover:text-primary hover:border-primary border border-gray-100 dark:border-gray-600 transition-all">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Add more hint -->
+<div class="p-4 text-center">
+<p class="text-xs text-gray-400 dark:text-gray-500">
+                        Is something missing? <button class="text-primary hover:underline">Tap to search manually</button>
+</p>
+</div>
+<div class="h-24"></div> <!-- Spacer for footer -->
+</div>
+</main>
+<!-- Sticky Footer -->
+<div class="absolute bottom-0 left-0 right-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 p-4 pb-6 flex flex-col gap-3 z-20">
+<button class="flex items-center justify-center gap-2 w-full h-12 bg-primary hover:bg-primary-dark active:scale-[0.98] transition-all rounded-xl shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-black">check</span>
+<span class="text-black font-bold text-base">Save as Meal</span>
+</button>
+<button class="flex items-center justify-center w-full h-12 bg-transparent border border-primary/30 dark:border-primary/20 text-gray-900 dark:text-white hover:bg-primary/5 active:scale-[0.98] transition-all rounded-xl font-medium">
+                Save to Catalog
+            </button>
+</div>
+</div>
+</body></html>

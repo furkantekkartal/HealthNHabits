@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hydration Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13",
+                        "primary-dark": "#0ea50e",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102210",
+                        // Adding custom blues for the "water" theme requested by user, while keeping brand green primary
+                        "water-50": "#f0f9ff",
+                        "water-100": "#e0f2fe",
+                        "water-200": "#bae6fd",
+                        "water-300": "#7dd3fc",
+                        "water-500": "#0ea5e9",
+                        "water-600": "#0284c7",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "3xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>.wave-container {
+            position: relative;
+            overflow: hidden;
+            transform: translate3d(0, 0, 0);
+        }
+        .wave {
+            opacity: 0.4;
+            position: absolute;
+            top: 10%;left: 50%;
+            background: #bae6fd;width: 200%;
+            height: 200%;
+            margin-left: -100%;
+            margin-top: -100%;
+            transform-origin: 50% 48%;
+            border-radius: 43%;
+            animation: drift 6000ms infinite linear;
+        }
+        .wave.-three {
+            animation: drift 8000ms infinite linear;
+            opacity: 0.2;
+            background: #7dd3fc;}
+        .wave.-two {
+            animation: drift 10000ms infinite linear;
+            opacity: 0.1; 
+            background: #e0f2fe;}
+        @keyframes drift {
+            from { transform: rotate(0deg); }
+            from { transform: rotate(360deg); }
+        }.no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display antialiased selection:bg-primary selection:text-white">
+<div class="mx-auto max-w-md min-h-screen relative flex flex-col bg-white dark:bg-[#152a15] shadow-xl overflow-hidden">
+<header class="flex items-center justify-between p-6 pb-2 pt-8 z-20">
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Today, Oct 24</span>
+<h1 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Hydration</h1>
+</div>
+<button class="relative group p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300" style="font-size: 28px;">history</span>
+</button>
+</header>
+<div class="px-6 py-4 z-20">
+<div class="relative overflow-hidden rounded-xl bg-gradient-to-r from-water-50 to-white dark:from-[#1a351a] dark:to-[#152a15] border border-water-100 dark:border-[#2a452a] p-4 shadow-sm flex items-start gap-3">
+<div class="flex-shrink-0 bg-primary/20 rounded-full p-1.5 mt-0.5">
+<span class="material-symbols-outlined text-primary-dark dark:text-primary" style="font-size: 20px;">smart_toy</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-semibold text-slate-800 dark:text-slate-100">You're 200ml ahead!</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Optimal hydration boosts your metabolism by up to 3%.</p>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+</button>
+</div>
+</div>
+<main class="flex-1 flex flex-col items-center justify-center relative py-6 z-10">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-water-100/50 dark:bg-water-900/10 rounded-full blur-3xl -z-10"></div>
+<div class="relative w-64 h-64 flex items-center justify-center">
+<svg class="absolute w-full h-full transform -rotate-90">
+<circle class="text-slate-100 dark:text-slate-800" cx="128" cy="128" fill="transparent" r="120" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-water-500 transition-all duration-1000 ease-out" cx="128" cy="128" fill="transparent" r="120" stroke="currentColor" stroke-dasharray="753.6" stroke-dashoffset="301" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="w-52 h-52 rounded-full bg-white dark:bg-[#1c381c] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] flex items-center justify-center relative overflow-hidden border-4 border-white dark:border-[#1c381c]">
+<div class="absolute inset-0 z-0 wave-container bg-water-50 dark:bg-slate-900">
+<div class="wave -three" style="top: 40%"></div>
+<div class="wave -two" style="top: 40%"></div>
+<div class="wave" style="top: 40%; background: #bae6fd;"></div>
+</div>
+<div class="relative z-10 flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-water-600 dark:text-water-300 mb-1" style="font-size: 28px;">water_drop</span>
+<div class="flex items-baseline gap-1">
+<span class="text-4xl font-black text-slate-800 dark:text-white tracking-tight">1,250</span>
+<span class="text-sm font-medium text-slate-500 dark:text-slate-300">ml</span>
+</div>
+<div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/60 dark:bg-black/20 backdrop-blur-sm border border-white/20">
+<span class="text-xs font-bold text-water-700 dark:text-water-300">50%</span>
+<span class="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">of Goal</span>
+</div>
+</div>
+</div>
+<div class="absolute -right-4 top-10 animate-bounce delay-700">
+<div class="w-2 h-2 rounded-full bg-water-400"></div>
+</div>
+<div class="absolute -left-2 bottom-20 animate-bounce delay-1000 duration-[3000ms]">
+<div class="w-3 h-3 rounded-full bg-primary/60"></div>
+</div>
+</div>
+<div class="mt-8 text-center px-8">
+<p class="text-slate-600 dark:text-slate-400 font-medium">Keep it up! You're halfway there.</p>
+</div>
+</main>
+<div class="bg-white dark:bg-[#152a15] rounded-t-3xl shadow-[0_-8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_-4px_20px_rgb(0,0,0,0.3)] z-20 pb-8 pt-2">
+<div class="w-12 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full mx-auto mt-3 mb-6"></div>
+<div class="px-6 mb-8">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-base font-bold text-slate-900 dark:text-white">Quick Add</h3>
+<button class="text-xs font-semibold text-primary hover:text-primary-dark transition-colors">Custom Amount</button>
+</div>
+<div class="grid grid-cols-3 gap-3">
+<div class="relative group">
+<button class="w-full h-full group relative flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-water-50 dark:bg-slate-800 border border-transparent hover:border-water-200 dark:hover:border-water-700 transition-all active:scale-95">
+<div class="w-10 h-10 rounded-full bg-white dark:bg-slate-700 shadow-sm flex items-center justify-center group-hover:shadow-md transition-all text-water-500">
+<span class="material-symbols-outlined" style="font-size: 20px;">local_cafe</span> 
+</div>
+<div class="text-center">
+<span class="block text-xs font-bold text-slate-800 dark:text-white group-hover:text-water-600 dark:group-hover:text-water-400">+200ml</span>
+<span class="block text-[10px] text-slate-400 dark:text-slate-500">Glass</span>
+</div>
+</button>
+<button aria-label="Undo 200ml addition" class="absolute top-1 left-1 w-6 h-6 flex items-center justify-center rounded-full bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-slate-700 text-slate-400 hover:text-red-500 transition-colors z-10">
+<span class="material-symbols-outlined" style="font-size: 14px;">remove</span>
+</button>
+</div>
+<div class="relative group">
+<button class="w-full h-full group relative flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-water-100 dark:bg-[#1a3a1a] border border-water-200 dark:border-[#2a5a2a] hover:bg-water-200 dark:hover:bg-[#204520] transition-all active:scale-95 shadow-sm">
+<div class="absolute -top-1 -right-1 flex h-4 w-4">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-4 w-4 bg-primary"></span>
+</div>
+<div class="w-10 h-10 rounded-full bg-white dark:bg-[#152a15] shadow-sm flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" style="font-size: 24px;">water_bottle</span>
+</div>
+<div class="text-center">
+<span class="block text-xs font-bold text-slate-900 dark:text-white">+500ml</span>
+<span class="block text-[10px] text-slate-500 dark:text-slate-400">Bottle</span>
+</div>
+</button>
+<button aria-label="Undo 500ml addition" class="absolute top-1 left-1 w-6 h-6 flex items-center justify-center rounded-full bg-white/60 dark:bg-black/20 hover:bg-white dark:hover:bg-slate-700 text-slate-500 hover:text-red-500 transition-colors z-10">
+<span class="material-symbols-outlined" style="font-size: 14px;">remove</span>
+</button>
+</div>
+<button class="group relative flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all active:scale-95">
+<div class="w-10 h-10 rounded-full bg-white dark:bg-slate-700 shadow-sm flex items-center justify-center text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300">
+<span class="material-symbols-outlined" style="font-size: 20px;">add</span>
+</div>
+<div class="text-center">
+<span class="block text-xs font-bold text-slate-600 dark:text-slate-300">Other</span>
+<span class="block text-[10px] text-slate-400 dark:text-slate-500">Custom</span>
+</div>
+</button>
+</div>
+</div>
+<div class="px-6">
+<div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 flex items-center justify-between border border-slate-100 dark:border-slate-700/50">
+<div class="flex items-center gap-3">
+<div class="p-2 bg-white dark:bg-slate-700 rounded-lg shadow-sm">
+<span class="material-symbols-outlined text-slate-400" style="font-size: 20px;">flag</span>
+</div>
+<div>
+<p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Daily Goal</p>
+<p class="text-sm font-bold text-slate-900 dark:text-white">2,500 ml</p>
+</div>
+</div>
+<div class="flex items-center gap-1 bg-white dark:bg-slate-700 rounded-lg p-1 shadow-sm border border-slate-100 dark:border-slate-600">
+<button class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-400 transition-colors">
+<span class="material-symbols-outlined" style="font-size: 18px;">remove</span>
+</button>
+<div class="w-px h-4 bg-slate-200 dark:bg-slate-600"></div>
+<button class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-primary/10 text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="h-1 bg-white dark:bg-[#152a15]"></div>
+</div>
+</body></html>

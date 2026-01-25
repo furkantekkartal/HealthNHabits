@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Product Catalog - Diet Tracker</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102210",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem", 
+                        "lg": "0.5rem", 
+                        "xl": "0.75rem", 
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display antialiased selection:bg-primary selection:text-black">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden max-w-md mx-auto bg-background-light dark:bg-background-dark shadow-xl">
+<!-- Header -->
+<header class="sticky top-0 z-20 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md px-4 py-2 border-b border-gray-200 dark:border-white/5">
+<div class="flex items-center justify-between h-14">
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-slate-900 dark:text-white" style="font-size: 24px;">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight flex-1 text-center text-slate-900 dark:text-white">Product Catalog</h1>
+<button class="text-primary font-semibold text-base px-2 hover:opacity-80 transition-opacity">
+                    Edit
+                </button>
+</div>
+</header>
+<!-- Search Bar -->
+<div class="px-4 py-4">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-gray-400 group-focus-within:text-primary transition-colors">search</span>
+</div>
+<input class="block w-full pl-10 pr-12 py-3 bg-white dark:bg-white/5 border-none rounded-xl text-slate-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-primary/50 shadow-sm transition-all" placeholder="Search food, drinks..." type="text"/>
+<button class="absolute inset-y-0 right-0 pr-3 flex items-center">
+<div class="bg-gray-100 dark:bg-white/10 hover:bg-primary/20 p-1.5 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-300" style="font-size: 20px;">mic</span>
+</div>
+</button>
+</div>
+</div>
+<!-- Categories (Chips) -->
+<div class="w-full overflow-x-auto no-scrollbar pb-2 px-4">
+<div class="flex gap-3">
+<button class="flex-shrink-0 px-5 py-2 rounded-full bg-primary text-black font-semibold text-sm shadow-md shadow-primary/20 transition-transform active:scale-95">
+                    All
+                </button>
+<button class="flex-shrink-0 px-5 py-2 rounded-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 text-slate-700 dark:text-gray-300 font-medium text-sm hover:border-primary/50 transition-colors active:scale-95">
+                    Water
+                </button>
+<button class="flex-shrink-0 px-5 py-2 rounded-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 text-slate-700 dark:text-gray-300 font-medium text-sm hover:border-primary/50 transition-colors active:scale-95">
+                    Coffee
+                </button>
+<button class="flex-shrink-0 px-5 py-2 rounded-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 text-slate-700 dark:text-gray-300 font-medium text-sm hover:border-primary/50 transition-colors active:scale-95">
+                    Meals
+                </button>
+<button class="flex-shrink-0 px-5 py-2 rounded-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 text-slate-700 dark:text-gray-300 font-medium text-sm hover:border-primary/50 transition-colors active:scale-95">
+                    Custom
+                </button>
+<button class="flex-shrink-0 px-5 py-2 rounded-full bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 text-slate-700 dark:text-gray-300 font-medium text-sm hover:border-primary/50 transition-colors active:scale-95">
+                    Snacks
+                </button>
+</div>
+</div>
+<!-- Most Used Section -->
+<div class="pt-6 pb-2 px-4">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Most Used</h2>
+<button class="text-xs font-semibold text-primary uppercase tracking-wider">View All</button>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<!-- Card 1 -->
+<div class="group relative flex flex-col bg-white dark:bg-white/5 p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 active:scale-[0.98] transition-all duration-200">
+<div class="relative w-full aspect-square rounded-xl overflow-hidden mb-3 bg-gray-100 dark:bg-black/20">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Overhead shot of a cup of espresso" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCQt23otIwmnYqre0JXHMzWOxIJOKAB0OOXcNbjxz8Xv9GtXzKgTVNNG5EOkIY_E5s3QOtkwnMchou_Wh6iYFUu2vGL7USnEpYbYOvKvv_54zmz2D08Ck-pGDZ7R7qWRQiFbaN_08s-WwOMrYxJnF4OvjjtkcPj7kpjJkc2TlJJercbCA6SXGulNnCsYo4rOpSV_ShkkHoHfGdL2oPdjQpD3LqLsk5WWrIoXPVHQBaIQQ_8N5QttTHYp-4k5DDCjYpJCglC-FChWvmW');"></div>
+<button aria-label="Add Espresso" class="absolute bottom-2 right-2 size-8 bg-primary rounded-full flex items-center justify-center text-black shadow-lg hover:bg-[#0fd60f] transition-colors">
+<span class="material-symbols-outlined" style="font-size: 20px; font-variation-settings: 'wght' 600;">add</span>
+</button>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white leading-tight">Espresso</h3>
+<p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">2 kcal · 1 cup</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group relative flex flex-col bg-white dark:bg-white/5 p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 active:scale-[0.98] transition-all duration-200">
+<div class="relative w-full aspect-square rounded-xl overflow-hidden mb-3 bg-gray-100 dark:bg-black/20">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Fresh yellow bananas on a surface" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBq-PKk28958y0TeofO4saYbLCgoRa0Lj3d5HPRslF7cKIx1xa64enlN84K43KfHMm83EPKJvtnyrhYPFphGuuEYoTp_ykoHYEx38Es682c9jmLX0A_A95s5fojIDzHrbHVAHD9nG581-XF5Ey9hKhGvz_sqY0mdS_GVdj6szGhJ4FMLZYkUDMEAiu_GJ4-Nysaom2YrFe2g3lcW3VRGSXA-NuvYHPGjHtHvDZIbKRIP_kng-NICzfjfIQpoIPfFly_KtODaXlwM5ay');"></div>
+<button aria-label="Add Banana" class="absolute bottom-2 right-2 size-8 bg-primary rounded-full flex items-center justify-center text-black shadow-lg hover:bg-[#0fd60f] transition-colors">
+<span class="material-symbols-outlined" style="font-size: 20px; font-variation-settings: 'wght' 600;">add</span>
+</button>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white leading-tight">Banana</h3>
+<p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">105 kcal · Medium</p>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group relative flex flex-col bg-white dark:bg-white/5 p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 active:scale-[0.98] transition-all duration-200">
+<div class="relative w-full aspect-square rounded-xl overflow-hidden mb-3 bg-gray-100 dark:bg-black/20">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Chocolate protein shake in a shaker" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDZ4rkYjC5t7Uj1UIPZ_k-4U9ou94smXxVKI1wv9bXvSvRDXP8XnCUPaYx3NxyvnepbWTOKYXwli24rj_vphBauIJayML9RuLLkxJMUGVM3tiWgjy8bbzdiaoBO4wwfKEPqBcMxL3U1kvwQJWz1frYFmbnMedqqeUkaYV4HTzr-xMA1D53vZtCXkbal3h46qNDTz49QSrw3wpaU8iSOJpmhpNDL-by8GpsEgobH2TEvaOrTnFJ8coGXiwxs-dT4sFREgnscPR_yDyKg');"></div>
+<button aria-label="Add Protein Shake" class="absolute bottom-2 right-2 size-8 bg-primary rounded-full flex items-center justify-center text-black shadow-lg hover:bg-[#0fd60f] transition-colors">
+<span class="material-symbols-outlined" style="font-size: 20px; font-variation-settings: 'wght' 600;">add</span>
+</button>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white leading-tight">Protein Shake</h3>
+<p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">150 kcal · 300ml</p>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="group relative flex flex-col bg-white dark:bg-white/5 p-3 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 active:scale-[0.98] transition-all duration-200">
+<div class="relative w-full aspect-square rounded-xl overflow-hidden mb-3 bg-gray-100 dark:bg-black/20">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110" data-alt="Grilled chicken breast on a plate" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCc5r1dG02jgXlL-m60Rt-mLXjE3_qZyVh98SCUjwFFaOV6V27USCr7jaQ39NNz42ZXgpouHS7bZ2lncHETtad_WGkbP73SdRGP0vLJy1u10mUYVf4tBE8_pOAV8epLkZpvMaUuQgl3Txah1JZZM3yhyoCYl9esnOrVsymwHinwdAVTJvXUucuFUi7sKwWSSvC1kv219brj5UuQISuIjDVrhCRH03n9R74pgjtmwUNL8zwEr7z2zg6065ED019Aj9_qowBrQbJxnBhk');"></div>
+<button aria-label="Add Grilled Chicken" class="absolute bottom-2 right-2 size-8 bg-primary rounded-full flex items-center justify-center text-black shadow-lg hover:bg-[#0fd60f] transition-colors">
+<span class="material-symbols-outlined" style="font-size: 20px; font-variation-settings: 'wght' 600;">add</span>
+</button>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white leading-tight">Grilled Chicken</h3>
+<p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">200 kcal · 150g</p>
+</div>
+</div>
+</div>
+</div>
+<!-- All Products List -->
+<div class="pt-6 pb-24 px-4">
+<h2 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight mb-4">All Products</h2>
+<div class="flex flex-col gap-2">
+<!-- List Item 1 -->
+<div class="group flex items-center bg-white dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:bg-gray-50 dark:active:bg-white/10">
+<div class="size-12 rounded-lg bg-gray-100 dark:bg-white/10 bg-cover bg-center flex-shrink-0" data-alt="Green salad bowl" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDTaudt45CSud-s0aOQ1Ovg9OTDvraMVcAeyPu2OTn0ki6vVV7IR5hh3lsIrLkYObbMi4xNIoAcUXX2pdO_luokodwK95D-T6Zul_2mTDKUBpFjc7hQTYpQJH0O3aZP3Eim5E5nyVp4r_L5lyh_YwU1kIAEW8t1GjcOLt5Th9iWydEV-ExkzarOBiJr0Skh-tteR_M0vE_MaROSucgPg7W4JPZFE6azR4gzE3TmQEs637O8oV3DLZNgpyS9EYJtsUDMnGbnzlnKgSVd');"></div>
+<div class="flex-1 ml-3 mr-2">
+<div class="flex justify-between items-baseline">
+<h3 class="font-semibold text-slate-900 dark:text-white">Greek Salad</h3>
+<span class="text-xs font-bold text-primary">320 kcal</span>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">300g · P:8g C:12g F:24g</p>
+</div>
+<div class="flex items-center text-gray-400 pl-2 border-l border-gray-100 dark:border-white/10 h-8">
+<span class="material-symbols-outlined cursor-grab active:cursor-grabbing hover:text-primary transition-colors">drag_handle</span>
+</div>
+</div>
+<!-- List Item 2 -->
+<div class="group flex items-center bg-white dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:bg-gray-50 dark:active:bg-white/10">
+<div class="size-12 rounded-lg bg-gray-100 dark:bg-white/10 bg-cover bg-center flex-shrink-0" data-alt="Fresh orange juice glass" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAqkERbIynxQMu7QftEvRhYwg6Pl2BT7sm9B_tsnDXBCiHVy59RHESrtxqtWNGFyYS6N-tpy9fEx3D5tvQsf0XeDvbubukckUfnd7D4EuveZHo3WutQx9rm3PpMOjWPW5PkKXtT2Yt9VQhhs7i2sxQw3GUwXqJwRct7SRZWierByevnAXBfv2WdTgZSbLB2FsGGKYOd0lWIzOqs8hORwtfbOj59IYJRBSzvdD_VTK5BQ6EDQ677TQBroqa7a4JIFKYXFSaVVYLidzAR');"></div>
+<div class="flex-1 ml-3 mr-2">
+<div class="flex justify-between items-baseline">
+<h3 class="font-semibold text-slate-900 dark:text-white">Orange Juice</h3>
+<span class="text-xs font-bold text-primary">110 kcal</span>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">250ml · P:2g C:26g F:0g</p>
+</div>
+<div class="flex items-center text-gray-400 pl-2 border-l border-gray-100 dark:border-white/10 h-8">
+<span class="material-symbols-outlined cursor-grab active:cursor-grabbing hover:text-primary transition-colors">drag_handle</span>
+</div>
+</div>
+<!-- List Item 3 -->
+<div class="group flex items-center bg-white dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:bg-gray-50 dark:active:bg-white/10">
+<div class="size-12 rounded-lg bg-gray-100 dark:bg-white/10 bg-cover bg-center flex-shrink-0" data-alt="Whole grain bread slice" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCS8nrkKLCfnvEptEkHdZvJigepSk4TmmGn1sQT2HLa83toJCxomW2TqYqTL7nvD9Ci68XlqBSDd0LpvXOHGhFeX-0k2DK81yR8QlJGM9CYuopBtwWleHH0_O5bFpP3QQNr_JNS2UptSuIKJuC3g2VNcD1SSJm2wcqAM5XdwF35V-vFbzfY2wKbwhlb0nd2Iz5OJSs4qnAe8jSm--vwpip1qLqeEq53MVaVr_4urL8EEutQNmFI8Z6U3OtegYgtjKBKEGFZnWXkoplE');"></div>
+<div class="flex-1 ml-3 mr-2">
+<div class="flex justify-between items-baseline">
+<h3 class="font-semibold text-slate-900 dark:text-white">Whole Grain Toast</h3>
+<span class="text-xs font-bold text-primary">90 kcal</span>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">1 slice · P:4g C:18g F:1g</p>
+</div>
+<div class="flex items-center text-gray-400 pl-2 border-l border-gray-100 dark:border-white/10 h-8">
+<span class="material-symbols-outlined cursor-grab active:cursor-grabbing hover:text-primary transition-colors">drag_handle</span>
+</div>
+</div>
+<!-- List Item 4 -->
+<div class="group flex items-center bg-white dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5 shadow-sm active:bg-gray-50 dark:active:bg-white/10">
+<div class="size-12 rounded-lg bg-gray-100 dark:bg-white/10 bg-cover bg-center flex-shrink-0" data-alt="Bowl of potato chips" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDAIoC-dIJq-5SAqXhOPbOJhL7Vn8ngaIqrMpwj2OEs1V9-GBnDp59okiJzpMOpEofY96gaHoFf_jXmcO7PT0KDYSJMqFtZ6nydUvmCth8uo2ELpy4eQXG6jWmkOwlz0GDF1-3tvHWKbnvUl2yHZvXKLOEeotCEYCXyYTr5qF94F3Q9WndA2v3ASMRAN60FYqad6cPn2CK0Ln5e6EwXbkUNKx8VSx8loN0ZxXxiHPOG2YMtYpOyYNwSguNEKJmt9HZr6wdfe-m5zPYA');"></div>
+<div class="flex-1 ml-3 mr-2">
+<div class="flex justify-between items-baseline">
+<h3 class="font-semibold text-slate-900 dark:text-white">Potato Chips</h3>
+<span class="text-xs font-bold text-primary">150 kcal</span>
+</div>
+<p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">28g · P:2g C:15g F:10g</p>
+</div>
+<div class="flex items-center text-gray-400 pl-2 border-l border-gray-100 dark:border-white/10 h-8">
+<span class="material-symbols-outlined cursor-grab active:cursor-grabbing hover:text-primary transition-colors">drag_handle</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Action Button -->
+<button class="fixed bottom-24 right-4 bg-black dark:bg-primary text-primary dark:text-black p-4 rounded-full shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all z-30 flex items-center gap-2">
+<span class="material-symbols-outlined">qr_code_scanner</span>
+<span class="text-sm font-bold pr-1">Scan</span>
+</button>
+<!-- Bottom Navigation -->
+<div class="fixed bottom-0 w-full max-w-md bg-white/90 dark:bg-background-dark/95 backdrop-blur-md border-t border-gray-200 dark:border-white/5 pb-5 pt-3 px-6 z-40">
+<div class="flex justify-between items-center">
+<button class="flex flex-col items-center gap-1 text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined fill-current" style="font-variation-settings: 'FILL' 1;">restaurant_menu</span>
+<span class="text-[10px] font-medium">Catalog</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="text-[10px] font-medium">Insights</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>
