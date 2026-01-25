@@ -13,8 +13,7 @@ export default function Weight() {
     const [profile, setProfile] = useState(null);
     const [weight, setWeight] = useState(70.0);
     const [startWeight, setStartWeight] = useState(null);
-    const [lastWeekWeight, setLastWeekWeight] = useState(null);
-    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [weekAgoWeight, setWeekAgoWeight] = useState(null);
     const wheelRef = useRef(null);
     const isScrolling = useRef(false);
 
@@ -35,7 +34,7 @@ export default function Weight() {
                 setLoading(true);
                 const [profileRes, historyRes] = await Promise.all([
                     getProfile(),
-                    getWeightHistory(7)
+                    getWeightHistory(14) // Get 14 days to find 7-day-ago weight
                 ]);
 
                 setProfile(profileRes.data);
@@ -54,13 +53,30 @@ export default function Weight() {
                     setWeight(currentWeight);
                 }
 
-                // Find start weight and last week weight
+                // Find weight from 7 days ago (not yesterday)
                 const history = historyRes.data || [];
-                const validWeights = history.filter(h => h.weight !== null);
-                if (validWeights.length > 0) {
-                    setStartWeight(validWeights[0].weight);
-                    if (validWeights.length > 1) {
-                        setLastWeekWeight(validWeights[0].weight);
+                if (history.length > 0) {
+                    // Get first recorded weight as start weight
+                    const firstWithWeight = history.find(h => h.weight !== null);
+                    if (firstWithWeight) {
+                        setStartWeight(firstWithWeight.weight);
+                    }
+
+                    // Find weight from 7 days before selected date
+                    const selectedDateObj = new Date(selectedDate);
+                    const weekAgoDate = new Date(selectedDateObj);
+                    weekAgoDate.setDate(weekAgoDate.getDate() - 7);
+                    const weekAgoStr = weekAgoDate.toISOString().split('T')[0];
+
+                    const weekAgoEntry = history.find(h => h.date === weekAgoStr && h.weight !== null);
+                    if (weekAgoEntry) {
+                        setWeekAgoWeight(weekAgoEntry.weight);
+                    } else {
+                        // Fallback: find closest weight to 7 days ago
+                        const validWeights = history.filter(h => h.weight !== null);
+                        if (validWeights.length >= 2) {
+                            setWeekAgoWeight(validWeights[0].weight); // Oldest available
+                        }
                     }
                 }
             } catch (err) {
@@ -146,7 +162,8 @@ export default function Weight() {
         }
     };
 
-    const weightDiff = lastWeekWeight ? (weight - lastWeekWeight).toFixed(1) : null;
+    // Calculate difference from 7 days ago
+    const weightDiff = weekAgoWeight ? (weight - weekAgoWeight).toFixed(1) : null;
     const isDown = weightDiff && parseFloat(weightDiff) < 0;
     const isUp = weightDiff && parseFloat(weightDiff) > 0;
 
@@ -176,37 +193,30 @@ export default function Weight() {
             {/* Main Content */}
             <main className="flex-1 flex flex-col items-center px-4 pt-4 pb-32 relative overflow-y-auto">
                 {/* Date Selector - Clickable */}
-                <button
-                    onClick={() => {
-                        // Toggle between dates
-                        const options = { weekday: 'short', month: 'short', day: 'numeric' };
-                        setShowDatePicker(!showDatePicker);
-                    }}
-                    className="w-full flex items-center justify-between bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 mb-8 active:scale-[0.98] transition-transform group"
-                >
+                <div className="w-full flex items-center justify-between bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 mb-8">
                     <div className="flex items-center gap-3">
-                        <div className="bg-primary/10 p-2 rounded-full text-primary group-hover:bg-primary/20 transition-colors">
+                        <div className="bg-primary/10 p-2 rounded-full text-primary">
                             <span className="material-symbols-outlined text-[20px]">calendar_today</span>
                         </div>
                         <span className="font-medium text-base text-slate-700">Date</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={(e) => { e.stopPropagation(); changeDate(-1); }}
+                            onClick={() => changeDate(-1)}
                             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100"
                         >
                             <span className="material-symbols-outlined text-gray-400">chevron_left</span>
                         </button>
                         <span className="text-primary font-semibold">{isToday() ? `Today, ${formatDate()}` : formatDate()}</span>
                         <button
-                            onClick={(e) => { e.stopPropagation(); changeDate(1); }}
+                            onClick={() => changeDate(1)}
                             disabled={isToday()}
                             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 disabled:opacity-30"
                         >
                             <span className="material-symbols-outlined text-gray-400">chevron_right</span>
                         </button>
                     </div>
-                </button>
+                </div>
 
                 {/* Weight Display */}
                 <div className="flex flex-col items-center justify-center w-full mb-6">
@@ -273,7 +283,7 @@ export default function Weight() {
                     </div>
                 </div>
 
-                {/* Feedback Indicator */}
+                {/* Feedback Indicator - Shows difference from 7 days ago */}
                 <div className="flex flex-col items-center justify-center gap-2 animate-fade-in">
                     {weightDiff && (
                         <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${isDown
@@ -289,7 +299,7 @@ export default function Weight() {
                             <p className={`text-sm font-medium ${isDown ? 'text-green-800' : isUp ? 'text-orange-800' : 'text-gray-800'
                                 }`}>
                                 <span className="font-bold">{Math.abs(parseFloat(weightDiff))}kg</span>
-                                {isDown ? ' down' : isUp ? ' up' : ''} since last week
+                                {isDown ? ' down' : isUp ? ' up' : ''} since 7 days ago
                             </p>
                         </div>
                     )}
@@ -301,7 +311,7 @@ export default function Weight() {
                 </div>
             </main>
 
-            {/* Save Button - Fixed at bottom */}
+            {/* Save Button - Fixed at bottom, GREEN by default */}
             <div className="fixed bottom-20 left-0 right-0 p-6 bg-gradient-to-t from-[#f6f8f6] via-[#f6f8f6] to-transparent pt-12 max-w-md mx-auto z-20">
                 <button
                     onClick={handleSave}
