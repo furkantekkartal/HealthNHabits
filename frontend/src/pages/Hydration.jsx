@@ -172,19 +172,17 @@ export default function Hydration() {
                 )}
 
                 {/* Header */}
-                <header className="flex items-center justify-between p-6 pb-2 pt-8 z-20">
-                    <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                            {isToday() ? `Today, ${formatDate()}` : formatDate()}
-                        </span>
-                        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Hydration</h1>
-                    </div>
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="relative group p-2 rounded-full hover:bg-slate-100 transition-colors"
-                    >
-                        <span className="material-symbols-outlined text-slate-600" style={{ fontSize: '28px' }}>history</span>
+                <header className="flex items-center justify-between p-4 sticky top-0 z-20 bg-[#f6f8f6]/95 backdrop-blur-md border-b border-gray-100">
+                    <button onClick={() => navigate(-1)} className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-black/5 transition-colors">
+                        <span className="material-symbols-outlined text-2xl">arrow_back</span>
                     </button>
+                    <div className="flex flex-col items-center">
+                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                            {isToday() ? 'Today' : formatDate()}
+                        </span>
+                        <h1 className="text-lg font-bold text-slate-900">Hydration</h1>
+                    </div>
+                    <div className="w-10"></div>
                 </header>
 
                 {/* Date Navigation */}
