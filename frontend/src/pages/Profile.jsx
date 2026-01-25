@@ -2,11 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getProfile, updateProfile, getTodayLog, addWeightEntry } from '../services/api';
 import { PageLoading, Toast } from '../components/ui/UIComponents';
+import { useAuth } from '../context/AuthContext';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
 export default function Profile() {
     const navigate = useNavigate();
+    const { logout } = useAuth();
     const fileInputRef = useRef(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -452,6 +454,20 @@ export default function Profile() {
                     <p className="text-[10px] text-gray-500 mt-2">
                         Base BMR: {baseBmr} kcal × {currentLevel?.multiplier || 1.35} ({currentLevel?.label})
                     </p>
+                </div>
+
+                {/* Logout Button */}
+                <div className="mt-6">
+                    <button
+                        onClick={() => {
+                            logout();
+                            navigate('/login');
+                        }}
+                        className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-semibold py-3.5 rounded-xl border border-red-200 transition-all flex items-center justify-center gap-2"
+                    >
+                        <span className="material-symbols-outlined text-xl">logout</span>
+                        Logout
+                    </button>
                 </div>
             </main>
 

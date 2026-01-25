@@ -2,12 +2,17 @@ const express = require('express');
 const router = express.Router();
 const DailyLog = require('../models/DailyLog');
 const UserProfile = require('../models/UserProfile');
+const auth = require('../middleware/auth');
+
+// All dashboard routes require authentication
+router.use(auth);
 
 // Get dashboard summary for today
 router.get('/', async (req, res) => {
     try {
-        const log = await DailyLog.getOrCreateToday();
-        const profile = await UserProfile.findOne();
+        const userId = req.user.userId;
+        const log = await DailyLog.getOrCreateToday(userId);
+        const profile = await UserProfile.findOne({ userId });
 
         // Default goals
         const goals = {
@@ -62,10 +67,10 @@ router.get('/', async (req, res) => {
             },
             weight: log.summary.weight,
             aiInsight,
-            user: profile ? {
-                name: 'User', // Would come from auth in real app
-                gender: profile.gender
-            } : null
+            user: {
+                name: profile?.name || req.user.username,
+                gender: profile?.gender
+            }
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -75,6 +80,7 @@ router.get('/', async (req, res) => {
 // Get weekly summary
 router.get('/weekly', async (req, res) => {
     try {
+        const userId = req.user.userId;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -82,10 +88,11 @@ router.get('/weekly', async (req, res) => {
         weekAgo.setDate(weekAgo.getDate() - 7);
 
         const logs = await DailyLog.find({
+            userId,
             date: { $gte: weekAgo, $lte: today }
         }).sort({ date: 1 });
 
-        const profile = await UserProfile.findOne();
+        const profile = await UserProfile.findOne({ userId });
         const calorieGoal = profile?.dailyCalorieGoal || 2000;
 
         const dailyData = logs.map(log => ({

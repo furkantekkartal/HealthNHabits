@@ -46,10 +46,14 @@ const entrySchema = new mongoose.Schema({
 });
 
 const dailyLogSchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
     date: {
         type: Date,
-        required: true,
-        unique: true
+        required: true
     },
     entries: [entrySchema],
     summary: {
@@ -108,16 +112,21 @@ dailyLogSchema.methods.recalculateSummary = function () {
     return this;
 };
 
-// Static method to get or create today's log
-dailyLogSchema.statics.getOrCreateToday = async function () {
+// Static method to get or create today's log for a user
+dailyLogSchema.statics.getOrCreateToday = async function (userId) {
+    if (!userId) throw new Error('userId is required');
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    let log = await this.findOne({ date: today });
+    let log = await this.findOne({ userId, date: today });
     if (!log) {
-        log = await this.create({ date: today, entries: [] });
+        log = await this.create({ userId, date: today, entries: [] });
     }
     return log;
 };
+
+// Compound index: one log per user per day
+dailyLogSchema.index({ userId: 1, date: 1 }, { unique: true });
 
 module.exports = mongoose.model('DailyLog', dailyLogSchema);

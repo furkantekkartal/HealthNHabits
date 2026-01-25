@@ -18,21 +18,30 @@ mongoose.connect(MONGODB_URI)
     .catch((err) => console.error('❌ MongoDB connection error:', err));
 
 // Routes
+const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 const productRoutes = require('./routes/products');
 const logRoutes = require('./routes/logs');
 const dashboardRoutes = require('./routes/dashboard');
 const aiRoutes = require('./routes/ai');
 
+app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/logs', logRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/ai', aiRoutes);
 
-// Health check
+// Health check with database status
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        database: {
+            connected: mongoose.connection.readyState === 1
+        },
+        environment: process.env.NODE_ENV || 'development'
+    });
 });
 
 // Start server
