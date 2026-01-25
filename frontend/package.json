@@ -5,6 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:master": "cross-env VITE_API_URL=http://localhost:5040/api PORT=3040 vite",
+    "dev:dev": "cross-env VITE_API_URL=http://localhost:5050/api PORT=3050 vite",
+    "start:master": "node scripts/setupEnv.js master && cross-env PORT=3040 vite",
+    "start:dev": "node scripts/setupEnv.js dev && cross-env PORT=3050 vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -22,6 +26,7 @@
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
+    "cross-env": "^7.0.3",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",

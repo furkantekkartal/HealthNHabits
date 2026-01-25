@@ -13,10 +13,29 @@ const getOrCreateLog = async (userId, date) => {
     const targetDate = new Date(date);
     targetDate.setHours(0, 0, 0, 0);
 
-    let log = await DailyLog.findOne({ userId, date: targetDate });
-    if (!log) {
-        log = await DailyLog.create({ userId, date: targetDate, entries: [] });
-    }
+    // Use findOneAndUpdate with upsert to prevent race conditions
+    const log = await DailyLog.findOneAndUpdate(
+        { userId, date: targetDate },
+        {
+            $setOnInsert: {
+                userId,
+                date: targetDate,
+                entries: [],
+                summary: {
+                    caloriesEaten: 0,
+                    caloriesBurned: 0,
+                    waterIntake: 0,
+                    steps: 0,
+                    weight: null,
+                    protein: 0,
+                    carbs: 0,
+                    fat: 0,
+                    fiber: 0
+                }
+            }
+        },
+        { upsert: true, new: true }
+    );
     return log;
 };
 
@@ -149,7 +168,7 @@ router.post('/steps', async (req, res) => {
         const profile = await UserProfile.findOne({ userId });
         let caloriesBurned = Math.round(steps * 0.04);
 
-        if (profile) {
+        if (profile?.weight?.value) {
             const weightKg = profile.weight.unit === 'kg'
                 ? profile.weight.value
                 : profile.weight.value * 0.453592;

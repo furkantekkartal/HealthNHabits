@@ -167,12 +167,29 @@ export default function Profile() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            // Save profile first
-            await updateProfile(formData);
+            // Transform form data to ensure proper types for backend
+            const profileData = {
+                ...formData,
+                // Convert empty strings to null/defaults for nested objects
+                height: {
+                    value: formData.height.value === '' ? 170 : parseFloat(formData.height.value),
+                    unit: formData.height.unit || 'cm'
+                },
+                weight: {
+                    value: formData.weight.value === '' ? 70 : parseFloat(formData.weight.value),
+                    unit: formData.weight.unit || 'kg'
+                },
+                // Ensure birthYear is a number or null
+                birthYear: formData.birthYear === '' ? null : parseInt(formData.birthYear)
+            };
 
-            // If weight was changed, also log it for today
-            if (formData.weight.value && formData.weight.value !== todayWeight) {
-                await addWeightEntry(formData.weight.value, formData.weight.unit || 'kg');
+            // Save profile first
+            await updateProfile(profileData);
+
+            // If weight was changed and has a value, also log it for today
+            const weightValue = parseFloat(formData.weight.value);
+            if (weightValue && weightValue !== todayWeight) {
+                await addWeightEntry(weightValue, formData.weight.unit || 'kg');
             }
 
             setToast({ message: 'Profile saved!', type: 'success' });
@@ -333,7 +350,9 @@ export default function Profile() {
                                     className="peer sr-only"
                                 />
                                 <div className={`py-2.5 px-3 rounded-lg text-center text-sm font-medium transition-all duration-200 ${formData.gender === gender
-                                    ? 'bg-black shadow-sm text-white'
+                                    ? gender === 'male' ? 'bg-blue-100 text-blue-700'
+                                        : gender === 'female' ? 'bg-pink-100 text-pink-700'
+                                            : 'bg-purple-100 text-purple-700'
                                     : 'text-gray-500 hover:text-gray-900'
                                     }`}>
                                     {gender.charAt(0).toUpperCase() + gender.slice(1)}

@@ -69,7 +69,8 @@ router.get('/', async (req, res) => {
             aiInsight,
             user: {
                 name: profile?.name || req.user.username,
-                gender: profile?.gender
+                gender: profile?.gender,
+                profileImage: profile?.profileImage || null
             }
         });
     } catch (error) {

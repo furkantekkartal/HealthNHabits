@@ -23,7 +23,8 @@ const userProfileSchema = new mongoose.Schema({
     birthYear: {
         type: Number,
         min: 1900,
-        max: 2024
+        max: 2026,
+        default: 1990
     },
     height: {
         value: { type: Number, default: 170 },
@@ -75,11 +76,19 @@ const userProfileSchema = new mongoose.Schema({
 
 // Calculate BMR (Basal Metabolic Rate) using Mifflin-St Jeor
 userProfileSchema.methods.calculateBMR = function () {
-    const weightKg = this.weight.unit === 'kg' ? this.weight.value : this.weight.value * 0.453592;
-    const heightCm = this.height.unit === 'cm' ? this.height.value : this.height.value * 30.48;
-    const age = new Date().getFullYear() - this.birthYear;
+    // Use defaults if values are missing
+    const weightValue = this.weight?.value || 70;
+    const weightUnit = this.weight?.unit || 'kg';
+    const heightValue = this.height?.value || 170;
+    const heightUnit = this.height?.unit || 'cm';
+    const birthYear = this.birthYear || 1990;
+    const gender = this.gender || 'male';
 
-    if (this.gender === 'male') {
+    const weightKg = weightUnit === 'kg' ? weightValue : weightValue * 0.453592;
+    const heightCm = heightUnit === 'cm' ? heightValue : heightValue * 30.48;
+    const age = new Date().getFullYear() - birthYear;
+
+    if (gender === 'male') {
         return 10 * weightKg + 6.25 * heightCm - 5 * age + 5;
     } else {
         return 10 * weightKg + 6.25 * heightCm - 5 * age - 161;

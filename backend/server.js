@@ -1,14 +1,31 @@
-require('dotenv').config();
+// Load environment-specific .env file
+const path = require('path');
+const nodeEnv = process.env.NODE_ENV || 'development';
+let envFile = '.env';
+if (nodeEnv === 'master') {
+    envFile = '.env.master';
+} else if (nodeEnv === 'development') {
+    envFile = '.env.dev';
+}
+require('dotenv').config({ path: path.join(__dirname, envFile) });
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+console.log(`🔧 Environment: ${nodeEnv}`);
+console.log(`📄 Loading config from: ${envFile}`);
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+    origin: [FRONTEND_URL, 'http://localhost:3040', 'http://localhost:3050'],
+    credentials: true
+}));
+app.use(express.json({ limit: '10mb' })); // Increased limit for base64 images
 
 // Connect to MongoDB
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/diet-tracker';
@@ -42,6 +59,12 @@ app.get('/api/health', (req, res) => {
         },
         environment: process.env.NODE_ENV || 'development'
     });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error('Global error handler:', err);
+    res.status(500).json({ error: err.message });
 });
 
 // Start server

@@ -119,10 +119,30 @@ dailyLogSchema.statics.getOrCreateToday = async function (userId) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    let log = await this.findOne({ userId, date: today });
-    if (!log) {
-        log = await this.create({ userId, date: today, entries: [] });
-    }
+    // Use findOneAndUpdate with upsert to prevent race conditions
+    // This is atomic and won't throw duplicate key errors
+    const log = await this.findOneAndUpdate(
+        { userId, date: today },
+        {
+            $setOnInsert: {
+                userId,
+                date: today,
+                entries: [],
+                summary: {
+                    caloriesEaten: 0,
+                    caloriesBurned: 0,
+                    waterIntake: 0,
+                    steps: 0,
+                    weight: null,
+                    protein: 0,
+                    carbs: 0,
+                    fat: 0,
+                    fiber: 0
+                }
+            }
+        },
+        { upsert: true, new: true }
+    );
     return log;
 };
 
