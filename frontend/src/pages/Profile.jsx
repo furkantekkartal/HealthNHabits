@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getProfile, updateProfile } from '../services/api';
+import { getProfile, updateProfile, getTodayLog, addWeightEntry } from '../services/api';
 import { PageLoading, Toast } from '../components/ui/UIComponents';
 
 export default function Profile() {
@@ -9,6 +9,7 @@ export default function Profile() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [toast, setToast] = useState(null);
+    const [todayWeight, setTodayWeight] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
         profileImage: null,
@@ -23,17 +24,30 @@ export default function Profile() {
     });
 
     useEffect(() => {
-        const fetchProfile = async () => {
+        const fetchData = async () => {
             try {
-                const res = await getProfile();
-                const profile = res.data;
+                const [profileRes, todayRes] = await Promise.all([
+                    getProfile(),
+                    getTodayLog()
+                ]);
+                const profile = profileRes.data;
+
+                // Get today's weight from log if available
+                const todayLog = todayRes.data;
+                const weightEntry = todayLog?.entries?.find(e => e.type === 'weight');
+                const currentTodayWeight = weightEntry?.data?.weight || todayLog?.summary?.weight || null;
+                setTodayWeight(currentTodayWeight);
+
                 setFormData({
                     name: profile.name || '',
                     profileImage: profile.profileImage || null,
                     gender: profile.gender || 'male',
                     birthYear: profile.birthYear || '',
                     height: profile.height || { value: '', unit: 'cm' },
-                    weight: profile.weight || { value: '', unit: 'kg' },
+                    weight: {
+                        value: currentTodayWeight || profile.weight?.value || '',
+                        unit: profile.weight?.unit || 'kg'
+                    },
                     activityLevel: profile.activityLevel || 'lightly_active',
                     dailyCalorieGoal: profile.dailyCalorieGoal || 2000,
                     dailyWaterGoal: profile.dailyWaterGoal || 2000,
@@ -45,7 +59,7 @@ export default function Profile() {
                 setLoading(false);
             }
         };
-        fetchProfile();
+        fetchData();
     }, []);
 
     const handleImageChange = (e) => {
@@ -62,7 +76,14 @@ export default function Profile() {
     const handleSave = async () => {
         setSaving(true);
         try {
+            // Save profile first
             await updateProfile(formData);
+
+            // If weight was changed, also log it for today
+            if (formData.weight.value && formData.weight.value !== todayWeight) {
+                await addWeightEntry(formData.weight.value, formData.weight.unit || 'kg');
+            }
+
             setToast({ message: 'Profile saved!', type: 'success' });
             setTimeout(() => navigate('/'), 1000);
         } catch (err) {
