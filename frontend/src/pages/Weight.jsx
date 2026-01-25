@@ -271,8 +271,8 @@ export default function Weight() {
                                         }
                                     }}
                                     className={`snap-center h-16 flex items-center justify-center cursor-pointer transition-all ${isSelected
-                                            ? 'text-5xl font-black text-slate-900'
-                                            : 'text-2xl font-bold text-neutral-300 hover:text-neutral-400'
+                                        ? 'text-5xl font-black text-slate-900'
+                                        : 'text-2xl font-bold text-neutral-300 hover:text-neutral-400'
                                         }`}
                                     style={{ scrollSnapAlign: 'center' }}
                                 >
@@ -287,10 +287,10 @@ export default function Weight() {
                 <div className="flex flex-col items-center justify-center gap-2 animate-fade-in">
                     {weightDiff && (
                         <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${isDown
-                                ? 'bg-green-100 border-green-200'
-                                : isUp
-                                    ? 'bg-orange-100 border-orange-200'
-                                    : 'bg-gray-100 border-gray-200'
+                            ? 'bg-green-100 border-green-200'
+                            : isUp
+                                ? 'bg-orange-100 border-orange-200'
+                                : 'bg-gray-100 border-gray-200'
                             }`}>
                             <span className={`material-symbols-outlined text-lg ${isDown ? 'text-green-600' : isUp ? 'text-orange-600' : 'text-gray-600'
                                 }`}>
@@ -316,7 +316,7 @@ export default function Weight() {
                 <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="w-full bg-primary hover:bg-[#0fd60f] active:scale-[0.98] transition-all text-black font-bold text-lg h-14 rounded-full shadow-[0_8px_20px_-6px_rgba(19,236,19,0.4)] hover:shadow-[0_12px_24px_-6px_rgba(19,236,19,0.5)] flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="w-full bg-[#13ec13] hover:bg-[#0fd60f] active:scale-[0.98] transition-all text-black font-bold text-lg h-14 rounded-full shadow-[0_8px_20px_-6px_rgba(19,236,19,0.4)] hover:shadow-[0_12px_24px_-6px_rgba(19,236,19,0.5)] flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                     <span>{saving ? 'Saving...' : 'Save Weight'}</span>
                     <span className="material-symbols-outlined text-2xl">check_circle</span>
