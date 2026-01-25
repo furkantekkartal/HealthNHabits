@@ -1,6 +1,34 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Dynamically determine the API URL based on how the frontend is accessed
+function getApiBaseUrl() {
+    // If VITE_API_URL is set (from Cloudflare backend tunnel), use it
+    if (import.meta.env.VITE_API_URL) {
+        return import.meta.env.VITE_API_URL;
+    }
+
+    // If accessing via Cloudflare frontend, try to get backend URL from localStorage
+    if (window.location.hostname.includes('.trycloudflare.com')) {
+        const storedBackendUrl = localStorage.getItem('cloudflare_backend_url');
+        if (storedBackendUrl) {
+            return storedBackendUrl + '/api';
+        }
+        console.warn('⚠️ Cloudflare detected but no backend URL configured.');
+    }
+
+    // Use the same hostname as the frontend (works for both localhost and network access)
+    const hostname = window.location.hostname; // e.g., "localhost" or "192.168.1.106"
+    const port = window.location.port;
+
+    // Determine backend port based on frontend port
+    let backendPort = '5000'; // default
+    if (port === '3040') backendPort = '5040'; // Master
+    if (port === '3050') backendPort = '5050'; // Dev
+
+    return `http://${hostname}:${backendPort}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 const api = axios.create({
     baseURL: API_BASE_URL,

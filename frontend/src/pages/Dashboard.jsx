@@ -480,64 +480,102 @@ export default function Dashboard() {
                     </div>
                     {/* Mini Weight Graph with Line & Dots */}
                     <div className="relative w-full h-32">
-                        {/* Background Zones */}
-                        <div className="absolute inset-0 flex flex-col h-24">
-                            <div className="flex-1 bg-orange-100/40 border-b border-dashed border-orange-200/60 relative">
-                                <span className="absolute right-1 top-0.5 text-[8px] font-bold uppercase text-orange-500/70">Overweight</span>
-                            </div>
-                            <div className="flex-[1.5] bg-emerald-100/45 border-b border-dashed border-emerald-200/55 relative">
-                                <span className="absolute right-1 top-0.5 text-[8px] font-bold uppercase text-emerald-500/70">Normal</span>
-                            </div>
-                            <div className="flex-1 bg-blue-100/40 relative">
-                                <span className="absolute right-1 top-0.5 text-[8px] font-bold uppercase text-blue-500/70">Underweight</span>
-                            </div>
-                        </div>
-                        {/* SVG Line Graph */}
-                        <div className="absolute inset-0 h-24">
-                            <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 300 100">
-                                <defs>
-                                    <linearGradient id="weightGradient" x1="0" x2="0" y1="0" y2="1">
-                                        <stop offset="0%" stopColor="#10b981" stopOpacity="0.15"></stop>
-                                        <stop offset="100%" stopColor="#10b981" stopOpacity="0"></stop>
-                                    </linearGradient>
-                                </defs>
-                                {weightHistory.length > 0 && (() => {
-                                    // Get the last 7 entries or pad with nulls
-                                    const data = weightHistory.slice(-7);
-                                    const weights = data.map(d => d?.weight || null).filter(w => w !== null);
-                                    if (weights.length === 0) return null;
+                        {(() => {
+                            // Calculate BMI-based weight thresholds for background zones
+                            const height = profile?.height?.value || 170; // cm
+                            const heightM = height / 100;
+                            const overweightThreshold = 25 * heightM * heightM; // BMI 25
+                            const underweightThreshold = 18.5 * heightM * heightM; // BMI 18.5
 
-                                    const minW = Math.min(...weights) - 2;
-                                    const maxW = Math.max(...weights) + 2;
-                                    const range = maxW - minW || 1;
+                            // Get weight data
+                            const data = weightHistory.slice(-7);
+                            const weights = data.map(d => d?.weight || null).filter(w => w !== null);
 
-                                    // Zone thresholds (based on y position: 0-28.5% = overweight, 28.5-71.5% = normal, 71.5-100% = underweight)
-                                    // The chart has flex-1, flex-[1.5], flex-1 = total 3.5 parts
-                                    // Overweight: 0% - 28.57% (1/3.5)
-                                    // Normal: 28.57% - 71.43% (1.5/3.5)
-                                    // Underweight: 71.43% - 100% (1/3.5)
-                                    const getZoneColor = (yPercent) => {
-                                        if (yPercent <= 28.57) return { fill: '#f97316', stroke: '#ea580c' }; // Orange for overweight
-                                        if (yPercent <= 71.43) return { fill: '#10b981', stroke: '#059669' }; // Emerald for normal
-                                        return { fill: '#3b82f6', stroke: '#2563eb' }; // Blue for underweight
-                                    };
+                            if (weights.length === 0) {
+                                return (
+                                    <div className="flex items-center justify-center h-24 text-gray-400 text-sm">
+                                        No weight data
+                                    </div>
+                                );
+                            }
 
-                                    // Build path points
-                                    const points = data.map((d, i) => {
-                                        if (!d?.weight) return null;
-                                        const x = (i / (data.length - 1 || 1)) * 300;
-                                        const y = 100 - ((d.weight - minW) / range) * 100;
-                                        const zoneColors = getZoneColor(y);
-                                        return { x, y, weight: d.weight, ...zoneColors };
-                                    }).filter(p => p !== null);
+                            // Calculate Y axis range to ALWAYS include BMI thresholds (30% extended)
+                            const dataMin = Math.min(...weights);
+                            const dataMax = Math.max(...weights);
+                            // Always show overweight and underweight zones by extending the range
+                            const minW = Math.min(dataMin - 2, underweightThreshold - 5);
+                            const maxW = Math.max(dataMax + 2, overweightThreshold + 5);
+                            const range = maxW - minW || 1;
 
-                                    if (points.length < 2) return null;
+                            // Calculate zone positions as percentages
+                            const overweightY = 100 - ((overweightThreshold - minW) / range) * 100;
+                            const underweightY = 100 - ((underweightThreshold - minW) / range) * 100;
 
-                                    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
-                                    const areaD = `${pathD} L${points[points.length - 1].x},100 L${points[0].x},100 Z`;
+                            // Clamp to visible area
+                            const clampedOverweightY = Math.max(0, Math.min(100, overweightY));
+                            const clampedUnderweightY = Math.max(0, Math.min(100, underweightY));
 
-                                    return (
-                                        <>
+                            const getZoneColor = (weight) => {
+                                const bmi = weight / (heightM * heightM);
+                                if (bmi >= 25) return { fill: '#f97316', stroke: '#ea580c' };
+                                if (bmi >= 18.5) return { fill: '#10b981', stroke: '#059669' };
+                                return { fill: '#3b82f6', stroke: '#2563eb' };
+                            };
+
+                            const points = data.map((d, i) => {
+                                if (!d?.weight) return null;
+                                const x = (i / (data.length - 1 || 1)) * 300;
+                                const y = 100 - ((d.weight - minW) / range) * 100;
+                                const zoneColors = getZoneColor(d.weight);
+                                return { x, y, weight: d.weight, ...zoneColors };
+                            }).filter(p => p !== null);
+
+                            if (points.length < 2) return null;
+
+                            const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+                            const areaD = `${pathD} L${points[points.length - 1].x},100 L${points[0].x},100 Z`;
+
+                            return (
+                                <>
+                                    {/* Dynamic Background Zones based on BMI */}
+                                    <div className="absolute inset-0 h-24 flex flex-col overflow-hidden rounded-lg">
+                                        {/* Overweight zone (top, if visible) */}
+                                        {clampedOverweightY > 0 && (
+                                            <div
+                                                className="bg-orange-100/50 relative"
+                                                style={{ height: `${clampedOverweightY}%` }}
+                                            >
+                                                <span className="absolute right-1 top-0.5 text-[8px] font-bold uppercase text-orange-500/70">Overweight</span>
+                                            </div>
+                                        )}
+                                        {/* Normal zone */}
+                                        <div
+                                            className="bg-emerald-100/50 border-y border-dashed border-gray-200/60 relative flex-1"
+                                            style={{
+                                                marginTop: clampedOverweightY <= 0 ? '0' : undefined,
+                                            }}
+                                        >
+                                            <span className="absolute right-1 top-0.5 text-[8px] font-bold uppercase text-emerald-500/70">Normal</span>
+                                        </div>
+                                        {/* Underweight zone (bottom, if visible) */}
+                                        {clampedUnderweightY < 100 && (
+                                            <div
+                                                className="bg-blue-100/50 relative"
+                                                style={{ height: `${100 - clampedUnderweightY}%` }}
+                                            >
+                                                <span className="absolute right-1 top-0.5 text-[8px] font-bold uppercase text-blue-500/70">Underweight</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {/* SVG Line Graph */}
+                                    <div className="absolute inset-0 h-24">
+                                        <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 300 100">
+                                            <defs>
+                                                <linearGradient id="weightGradient" x1="0" x2="0" y1="0" y2="1">
+                                                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.15"></stop>
+                                                    <stop offset="100%" stopColor="#10b981" stopOpacity="0"></stop>
+                                                </linearGradient>
+                                            </defs>
                                             <path d={areaD} fill="url(#weightGradient)" />
                                             <path d={pathD} fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                                             {points.map((p, i) => (
@@ -551,11 +589,11 @@ export default function Dashboard() {
                                                     strokeWidth={i === points.length - 1 ? 2.5 : 2}
                                                 />
                                             ))}
-                                        </>
-                                    );
-                                })()}
-                            </svg>
-                        </div>
+                                        </svg>
+                                    </div>
+                                </>
+                            );
+                        })()}
                         {/* Entry markers - show dates instead of day letters */}
                         <div className="flex justify-between w-full text-[10px] text-gray-400 absolute bottom-0 pt-2">
                             {weightHistory.slice(-7).map((entry, i) => (

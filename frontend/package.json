@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:master": "cross-env VITE_API_URL=http://localhost:5040/api PORT=3040 vite",
-    "dev:dev": "cross-env VITE_API_URL=http://localhost:5050/api PORT=3050 vite",
+    "dev:master": "cross-env PORT=3040 vite",
+    "dev:dev": "cross-env PORT=3050 vite",
     "start:master": "node scripts/setupEnv.js master && cross-env PORT=3040 vite",
     "start:dev": "node scripts/setupEnv.js dev && cross-env PORT=3050 vite",
     "build": "vite build",

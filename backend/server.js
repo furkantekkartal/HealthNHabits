@@ -20,9 +20,23 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 console.log(`🔧 Environment: ${nodeEnv}`);
 console.log(`📄 Loading config from: ${envFile}`);
 
-// Middleware
+// Middleware - Dynamic CORS to allow Cloudflare tunnels
 app.use(cors({
-    origin: [FRONTEND_URL, 'http://localhost:3040', 'http://localhost:3050'],
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+
+        // Allow localhost origins
+        if (origin.includes('localhost')) return callback(null, true);
+
+        // Allow all Cloudflare tunnel URLs
+        if (origin.includes('.trycloudflare.com')) return callback(null, true);
+
+        // Allow configured frontend URL
+        if (origin === FRONTEND_URL) return callback(null, true);
+
+        callback(null, true); // Allow all for development
+    },
     credentials: true
 }));
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 images

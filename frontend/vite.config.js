@@ -8,6 +8,7 @@ export default defineConfig({
   server: {
     port: parseInt(process.env.PORT || '3040'),
     strictPort: true,
-    host: true
+    host: true,
+    allowedHosts: ['.trycloudflare.com']
   }
 })
