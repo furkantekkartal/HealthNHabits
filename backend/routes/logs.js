@@ -228,37 +228,31 @@ router.post('/weight', async (req, res) => {
     }
 });
 
-// Get weight history (last 7 days)
+// Get weight history (last N user-entered measurements, not days)
 router.get('/weight/history', async (req, res) => {
     try {
-        const days = parseInt(req.query.days) || 7;
-        const endDate = new Date();
-        endDate.setHours(23, 59, 59, 999);
+        const limit = parseInt(req.query.days) || 7; // Reusing 'days' param but now means count of entries
 
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - days + 1);
-        startDate.setHours(0, 0, 0, 0);
-
+        // Find all logs with weight entries, sorted by date descending
         const logs = await DailyLog.find({
-            date: { $gte: startDate, $lte: endDate }
-        }).sort({ date: 1 });
+            'entries.type': 'weight'
+        }).sort({ date: -1 });
 
+        // Extract weight entries from logs (only user-entered ones via entries array)
         const history = [];
-        for (let i = 0; i < days; i++) {
-            const checkDate = new Date(startDate);
-            checkDate.setDate(checkDate.getDate() + i);
-            checkDate.setHours(0, 0, 0, 0);
-
-            const log = logs.find(l => l.date.toDateString() === checkDate.toDateString());
-            const weightEntry = log?.entries?.find(e => e.type === 'weight');
-
-            history.push({
-                date: checkDate.toISOString().split('T')[0],
-                weight: weightEntry?.data?.weight || log?.summary?.weight || null
-            });
+        for (const log of logs) {
+            const weightEntry = log.entries.find(e => e.type === 'weight');
+            if (weightEntry && weightEntry.data?.weight) {
+                history.push({
+                    date: log.date.toISOString().split('T')[0],
+                    weight: weightEntry.data.weight
+                });
+            }
+            if (history.length >= limit) break;
         }
 
-        res.json(history);
+        // Reverse to show oldest first (for graph display)
+        res.json(history.reverse());
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

@@ -296,7 +296,7 @@ export default function Dashboard() {
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                            <span className="text-xs font-medium text-gray-600">Output ({totalOutput.toLocaleString()})</span>
+                            <span className="text-xs font-medium text-gray-600">Burned ({totalOutput.toLocaleString()})</span>
                         </div>
                     </div>
                 </div>
@@ -470,7 +470,7 @@ export default function Dashboard() {
                             </div>
                             <div>
                                 <p className="text-base font-bold">Weight</p>
-                                <p className="text-xs text-gray-500">Last 7 Days</p>
+                                <p className="text-xs text-gray-500">Last 7 Entries</p>
                             </div>
                         </div>
                         <div className="text-right">
@@ -556,10 +556,10 @@ export default function Dashboard() {
                                 })()}
                             </svg>
                         </div>
-                        {/* Day Labels */}
+                        {/* Entry markers - show dates instead of day letters */}
                         <div className="flex justify-between w-full text-[10px] text-gray-400 absolute bottom-0 pt-2">
-                            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
-                                <span key={i}>{day}</span>
+                            {weightHistory.slice(-7).map((entry, i) => (
+                                <span key={i} title={entry.date}>{i === 0 ? '←' : i === weightHistory.slice(-7).length - 1 ? '→' : '•'}</span>
                             ))}
                         </div>
                     </div>
