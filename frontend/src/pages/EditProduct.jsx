@@ -17,6 +17,24 @@ export default function EditProduct() {
     const editFoodEntry = location.state?.editFoodEntry;
     const isEditingEntry = !!editFoodEntry;
 
+    // Check if coming from analyze page - use both location.state and sessionStorage
+    const [returnTo, setReturnTo] = useState(null);
+
+    useEffect(() => {
+        // First check location.state
+        if (location.state?.returnTo) {
+            setReturnTo(location.state.returnTo);
+            // Also save to sessionStorage as backup
+            sessionStorage.setItem('editProductReturnTo', location.state.returnTo);
+        } else {
+            // Check sessionStorage as fallback
+            const savedReturnTo = sessionStorage.getItem('editProductReturnTo');
+            if (savedReturnTo) {
+                setReturnTo(savedReturnTo);
+            }
+        }
+    }, [location.state]);
+
     const [loading, setLoading] = useState(false);
     const [autoFilling, setAutoFilling] = useState(false);
     const [analyzing, setAnalyzing] = useState(false);
@@ -210,6 +228,43 @@ export default function EditProduct() {
             if (isNew) {
                 await createProduct(productData);
                 setToast({ message: 'Product created!', type: 'success' });
+
+                // If coming from analyze page, add product to detected items
+                if (returnTo === '/analyze') {
+                    const existingState = sessionStorage.getItem('foodAnalysisState');
+                    if (existingState) {
+                        try {
+                            const parsed = JSON.parse(existingState);
+                            // Add new item to the result items
+                            const newItem = {
+                                id: Date.now(),
+                                name: formData.name,
+                                calories: formData.calories,
+                                protein: formData.protein,
+                                carbs: formData.carbs,
+                                fat: formData.fat,
+                                fiber: formData.fiber,
+                                portion: formData.servingValue,
+                                basePortion: formData.servingValue,
+                                baseCalories: formData.calories,
+                                baseProtein: formData.protein,
+                                baseCarbs: formData.carbs,
+                                baseFat: formData.fat,
+                                baseFiber: formData.fiber,
+                                unit: formData.servingUnit
+                            };
+                            parsed.result = parsed.result || { items: [] };
+                            parsed.result.items = [...(parsed.result.items || []), newItem];
+                            sessionStorage.setItem('foodAnalysisState', JSON.stringify(parsed));
+                        } catch (e) {
+                            console.error('Error updating state:', e);
+                        }
+                    }
+                    // Clear the returnTo from sessionStorage
+                    sessionStorage.removeItem('editProductReturnTo');
+                    setTimeout(() => navigate('/analyze'), 1000);
+                    return;
+                }
             } else {
                 await updateProduct(id, productData);
                 setToast({ message: 'Product updated!', type: 'success' });
@@ -236,7 +291,10 @@ export default function EditProduct() {
 
             {/* Header */}
             <header className="flex items-center justify-between p-4 sticky top-0 z-10 bg-[#f6f8f6]/95 backdrop-blur-md border-b border-gray-100">
-                <button onClick={() => navigate(-1)} className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-black/5 transition-colors">
+                <button onClick={() => {
+                    sessionStorage.removeItem('editProductReturnTo');
+                    navigate(returnTo || -1);
+                }} className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-black/5 transition-colors">
                     <span className="material-symbols-outlined text-2xl text-gray-900">arrow_back</span>
                 </button>
                 <h1 className="text-lg font-bold tracking-tight">{isNew ? 'New Product' : 'Edit Product'}</h1>

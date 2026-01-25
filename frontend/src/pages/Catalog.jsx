@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { getProducts, getMostUsedProducts, addFoodEntry, updateProduct } from '../services/api';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { getProducts, getMostUsedProducts, addFoodEntry, updateProduct, deleteProduct } from '../services/api';
 import { useDate } from '../context/DateContext';
 import { PageLoading, Toast } from '../components/ui/UIComponents';
 
 const MEAL_TYPES = [
-    { id: 'breakfast', label: 'Breakfast', icon: 'egg_alt', color: 'bg-amber-100 text-amber-700 border-amber-300' },
-    { id: 'lunch', label: 'Lunch', icon: 'lunch_dining', color: 'bg-orange-100 text-orange-700 border-orange-300' },
-    { id: 'dinner', label: 'Dinner', icon: 'dinner_dining', color: 'bg-purple-100 text-purple-700 border-purple-300' },
-    { id: 'snack', label: 'Snack', icon: 'cookie', color: 'bg-pink-100 text-pink-700 border-pink-300' },
+    { id: 'breakfast', label: 'Breakfast', icon: 'egg_alt', color: 'bg-amber-100 text-amber-700 border-amber-300', iconColor: 'text-amber-500' },
+    { id: 'lunch', label: 'Lunch', icon: 'lunch_dining', color: 'bg-orange-100 text-orange-700 border-orange-300', iconColor: 'text-orange-500' },
+    { id: 'dinner', label: 'Dinner', icon: 'dinner_dining', color: 'bg-purple-100 text-purple-700 border-purple-300', iconColor: 'text-purple-500' },
+    { id: 'snack', label: 'Snack', icon: 'cookie', color: 'bg-pink-100 text-pink-700 border-pink-300', iconColor: 'text-pink-500' },
 ];
 
 const CATEGORIES = [
@@ -22,6 +22,7 @@ const CATEGORIES = [
 
 export default function Catalog() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { selectedDate, isToday, formatDate, getDateString, changeDate } = useDate();
     const [pageLoading, setPageLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState('All');
@@ -32,6 +33,22 @@ export default function Catalog() {
     const [toast, setToast] = useState(null);
     const [addingProduct, setAddingProduct] = useState(null);
     const [longPressItem, setLongPressItem] = useState(null);
+
+    // Check if coming from analyze page
+    const [returnTo, setReturnTo] = useState(null);
+    const isFromAnalyze = returnTo === '/analyze';
+
+    useEffect(() => {
+        if (location.state?.returnTo) {
+            setReturnTo(location.state.returnTo);
+            sessionStorage.setItem('catalogReturnTo', location.state.returnTo);
+        } else {
+            const savedReturnTo = sessionStorage.getItem('catalogReturnTo');
+            if (savedReturnTo) {
+                setReturnTo(savedReturnTo);
+            }
+        }
+    }, [location.state]);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -52,6 +69,12 @@ export default function Catalog() {
     }, [activeCategory]);
 
     const quickAddProduct = async (product) => {
+        // If coming from analyze page, add to detected items instead
+        if (isFromAnalyze) {
+            addToAnalysis(product);
+            return;
+        }
+
         setAddingProduct(product._id || product.id);
         try {
             await addFoodEntry({
@@ -75,6 +98,44 @@ export default function Catalog() {
         }
     };
 
+    // Add product to analysis detected items
+    const addToAnalysis = (product) => {
+        const existingState = sessionStorage.getItem('foodAnalysisState');
+        if (existingState) {
+            try {
+                const parsed = JSON.parse(existingState);
+                const newItem = {
+                    id: Date.now(),
+                    name: product.name,
+                    calories: product.nutrition?.calories || 0,
+                    protein: product.nutrition?.protein || 0,
+                    carbs: product.nutrition?.carbs || 0,
+                    fat: product.nutrition?.fat || 0,
+                    fiber: product.nutrition?.fiber || 0,
+                    portion: product.servingSize?.value || 100,
+                    basePortion: product.servingSize?.value || 100,
+                    baseCalories: product.nutrition?.calories || 0,
+                    baseProtein: product.nutrition?.protein || 0,
+                    baseCarbs: product.nutrition?.carbs || 0,
+                    baseFat: product.nutrition?.fat || 0,
+                    baseFiber: product.nutrition?.fiber || 0,
+                    unit: product.servingSize?.unit || 'g'
+                };
+                parsed.result = parsed.result || { items: [] };
+                parsed.result.items = [...(parsed.result.items || []), newItem];
+                sessionStorage.setItem('foodAnalysisState', JSON.stringify(parsed));
+                sessionStorage.removeItem('catalogReturnTo');
+                setToast({ message: `${product.name} added!`, type: 'success' });
+                setTimeout(() => navigate('/analyze'), 500);
+            } catch (e) {
+                console.error('Error adding to analysis:', e);
+                setToast({ message: 'Failed to add product', type: 'error' });
+            }
+        } else {
+            setToast({ message: 'Analysis session expired', type: 'error' });
+        }
+    };
+
     const handleLongPress = (product, isMostUsed) => {
         setLongPressItem({ product, isMostUsed });
     };
@@ -93,6 +154,22 @@ export default function Catalog() {
             setToast({ message: 'Failed to update', type: 'error' });
         }
         setLongPressItem(null);
+    };
+
+    // Delete product directly
+    const handleDeleteProduct = async (product) => {
+        try {
+            await deleteProduct(product._id || product.id);
+            setToast({ message: `${product.name} deleted`, type: 'success' });
+            // Refresh the product list
+            setAllProducts(prev => prev.filter(p => (p._id || p.id) !== (product._id || product.id)));
+            // Also refresh most used in case it was there
+            const mostUsedRes = await getMostUsedProducts(6);
+            setMostUsed(mostUsedRes.data || []);
+        } catch (err) {
+            console.error('Delete error:', err);
+            setToast({ message: 'Failed to delete', type: 'error' });
+        }
     };
 
     const filteredProducts = allProducts.filter(p =>
@@ -139,14 +216,28 @@ export default function Catalog() {
             {/* Header */}
             <header className="sticky top-0 z-20 bg-[#f6f8f6]/95 backdrop-blur-md px-4 py-2 border-b border-gray-200">
                 <div className="flex items-center justify-between h-14">
-                    <button onClick={() => navigate(-1)} className="flex items-center justify-center size-10 rounded-full hover:bg-black/5 transition-colors">
+                    <button onClick={() => {
+                        sessionStorage.removeItem('catalogReturnTo');
+                        navigate(returnTo || -1);
+                    }} className="flex items-center justify-center size-10 rounded-full hover:bg-black/5 transition-colors">
                         <span className="material-symbols-outlined text-slate-900">arrow_back</span>
                     </button>
-                    <h1 className="text-lg font-bold tracking-tight flex-1 text-center text-slate-900">Product Catalog</h1>
-                    <Link to="/catalog/new" className="text-primary font-semibold text-base px-2 hover:opacity-80 transition-opacity">
-                        Add
+                    <h1 className="text-lg font-bold tracking-tight flex-1 text-center text-slate-900">
+                        {isFromAnalyze ? 'Add to Meal' : 'Product Catalog'}
+                    </h1>
+                    <Link
+                        to="/catalog/new"
+                        state={{ returnTo: returnTo }}
+                        className="text-primary font-semibold text-base px-2 hover:opacity-80 transition-opacity"
+                    >
+                        New
                     </Link>
                 </div>
+                {isFromAnalyze && (
+                    <div className="pb-2">
+                        <p className="text-xs text-center text-gray-500">Tap a product to add it to your meal analysis</p>
+                    </div>
+                )}
             </header>
 
             {/* Date Selector */}
@@ -167,18 +258,19 @@ export default function Catalog() {
                 </div>
             </div>
 
-            {/* Scan Button - Single Green */}
+            {/* Scan Button - Always Green */}
             <div className="px-4 pb-3">
                 <Link
                     to="/analyze"
-                    className="flex items-center justify-center gap-2 w-full py-3.5 bg-primary text-black rounded-xl font-bold hover:bg-[#0fd60f] transition-colors shadow-md shadow-primary/20"
+                    className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold transition-colors shadow-md"
+                    style={{ backgroundColor: '#1aff1a', color: '#000' }}
                 >
                     <span className="material-symbols-outlined">photo_camera</span>
                     Scan Food with AI
                 </Link>
             </div>
 
-            {/* Meal Type Selector - Vibrant Colors */}
+            {/* Meal Type Selector - Colorful Icons */}
             <div className="px-4 pb-3">
                 <div className="flex gap-2">
                     {MEAL_TYPES.map((meal) => (
@@ -186,14 +278,12 @@ export default function Catalog() {
                             key={meal.id}
                             onClick={() => setSelectedMealType(meal.id)}
                             className={`flex-1 flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl transition-all border-2 ${selectedMealType === meal.id
-                                    ? meal.color
-                                    : 'bg-white border-gray-100 hover:border-gray-200'
+                                ? meal.color
+                                : 'bg-white border-gray-200 hover:border-gray-300'
                                 }`}
                         >
-                            <span className={`material-symbols-outlined text-[20px] ${selectedMealType === meal.id ? '' : 'text-gray-400'
-                                }`}>{meal.icon}</span>
-                            <span className={`text-xs font-medium ${selectedMealType === meal.id ? 'font-semibold' : 'text-gray-500'
-                                }`}>{meal.label}</span>
+                            <span className={`material-symbols-outlined text-[20px] ${selectedMealType === meal.id ? '' : meal.iconColor}`}>{meal.icon}</span>
+                            <span className={`text-xs font-medium ${selectedMealType === meal.id ? 'font-semibold' : 'text-gray-600'}`}>{meal.label}</span>
                         </button>
                     ))}
                 </div>
@@ -231,8 +321,8 @@ export default function Catalog() {
                 </div>
             </div>
 
-            {/* Most Used Section - 3x2 Grid, 30% Smaller */}
-            {mostUsed.length > 0 && (
+            {/* Most Used Section - 3x2 Grid, 30% Smaller - Hidden when searching */}
+            {mostUsed.length > 0 && !searchQuery && (
                 <div className="pt-4 pb-2 px-4">
                     <div className="flex items-center justify-between mb-3">
                         <h2 className="text-lg font-bold text-slate-900 tracking-tight">Most Used</h2>
@@ -335,15 +425,23 @@ export default function Catalog() {
                                         {product.servingSize?.value}{product.servingSize?.unit} · P:{product.nutrition?.protein || 0}g C:{product.nutrition?.carbs || 0}g F:{product.nutrition?.fat || 0}g
                                     </p>
                                 </Link>
-                                <button
-                                    onClick={() => quickAddProduct(product)}
-                                    disabled={addingProduct === (product._id || product.id)}
-                                    className="size-10 bg-primary rounded-full flex items-center justify-center text-black hover:bg-[#0fd60f] transition-colors disabled:opacity-50 shadow-sm"
-                                >
-                                    <span className="material-symbols-outlined text-[20px]">
-                                        {addingProduct === (product._id || product.id) ? 'hourglass_empty' : 'add'}
-                                    </span>
-                                </button>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => quickAddProduct(product)}
+                                        disabled={addingProduct === (product._id || product.id)}
+                                        className="size-9 bg-primary rounded-full flex items-center justify-center text-black hover:bg-[#0fd60f] transition-colors disabled:opacity-50 shadow-sm"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">
+                                            {addingProduct === (product._id || product.id) ? 'hourglass_empty' : 'add'}
+                                        </span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteProduct(product)}
+                                        className="size-9 bg-red-100 hover:bg-red-200 rounded-full flex items-center justify-center text-red-600 transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>

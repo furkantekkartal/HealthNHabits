@@ -30,6 +30,24 @@ export default function FoodAnalysis() {
     const [searchResults, setSearchResults] = useState([]);
     const [searching, setSearching] = useState(false);
 
+    // Restore state from sessionStorage if coming back from catalog/new
+    useEffect(() => {
+        const savedState = sessionStorage.getItem('foodAnalysisState');
+        if (savedState) {
+            try {
+                const parsed = JSON.parse(savedState);
+                if (parsed.result) setResult(parsed.result);
+                if (parsed.mealName) setMealName(parsed.mealName);
+                if (parsed.selectedMealType) setSelectedMealType(parsed.selectedMealType);
+                if (parsed.imagePreview) setImagePreview(parsed.imagePreview);
+                // Clear the saved state after restoring
+                sessionStorage.removeItem('foodAnalysisState');
+            } catch (e) {
+                console.error('Error restoring state:', e);
+            }
+        }
+    }, []);
+
     // Check if we're editing an existing entry
     useEffect(() => {
         if (location.state?.editEntry) {
@@ -57,6 +75,18 @@ export default function FoodAnalysis() {
             setSelectedMealType(entry.data?.mealType || 'lunch');
         }
     }, [location.state]);
+
+    // Save state to sessionStorage before navigating away
+    const saveStateAndNavigate = (path) => {
+        const stateToSave = {
+            result,
+            mealName,
+            selectedMealType,
+            imagePreview
+        };
+        sessionStorage.setItem('foodAnalysisState', JSON.stringify(stateToSave));
+        navigate(path, { state: { returnTo: '/analyze' } });
+    };
 
     const handleImageSelect = (e) => {
         const file = e.target.files[0];
@@ -265,7 +295,7 @@ export default function FoodAnalysis() {
             </header>
 
             {/* Main Content - Scrollable with proper padding for fixed footer */}
-            <main className="flex-1 overflow-y-auto pb-56">
+            <main className="flex-1 overflow-y-auto pb-40">
                 {/* Image Section */}
                 <div className="px-4 py-3">
                     {!imagePreview && !result ? (
@@ -399,11 +429,30 @@ export default function FoodAnalysis() {
                             </div>
                         </div>
 
+                        {/* Meal Type Selector - Moved above detected items */}
+                        <div className="flex gap-2 py-2">
+                            {MEAL_TYPES.map((meal) => (
+                                <button
+                                    key={meal.id}
+                                    onClick={() => setSelectedMealType(meal.id)}
+                                    className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-xl transition-all border ${selectedMealType === meal.id
+                                        ? 'bg-primary/10 border-primary'
+                                        : 'bg-white border-gray-200 hover:border-gray-300'
+                                        }`}
+                                >
+                                    <span className={`material-symbols-outlined text-[20px] ${selectedMealType === meal.id ? 'text-primary' : 'text-gray-400'
+                                        }`}>{meal.icon}</span>
+                                    <span className={`text-xs font-medium ${selectedMealType === meal.id ? 'text-primary' : 'text-gray-500'
+                                        }`}>{meal.label}</span>
+                                </button>
+                            ))}
+                        </div>
+
                         {/* Detected Items Header */}
                         <div className="flex items-center justify-between">
                             <h3 className="text-base font-bold">Detected Items</h3>
                             <button
-                                onClick={() => setShowAddModal(true)}
+                                onClick={() => saveStateAndNavigate('/catalog')}
                                 className="text-primary text-sm font-semibold flex items-center gap-1 hover:opacity-80"
                             >
                                 <span className="material-symbols-outlined text-[18px]">add</span>
@@ -477,7 +526,7 @@ export default function FoodAnalysis() {
                         {/* Search Manually Link */}
                         <div className="text-center py-2">
                             <p className="text-xs text-gray-400">
-                                Is something missing? <button onClick={() => setShowAddModal(true)} className="text-primary hover:underline">Tap to add manually</button>
+                                Is something missing? <button onClick={() => saveStateAndNavigate('/catalog')} className="text-primary hover:underline">Browse catalog to add</button>
                             </p>
                         </div>
                     </div>
@@ -486,34 +535,14 @@ export default function FoodAnalysis() {
 
             {/* Fixed Footer with Save Button - Proper spacing above nav bar */}
             {result?.items?.length > 0 && (
-                <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 z-30">
-                    {/* Meal Type Selector */}
-                    <div className="flex gap-1 p-3 pb-2 border-b border-gray-100">
-                        {MEAL_TYPES.map((meal) => (
-                            <button
-                                key={meal.id}
-                                onClick={() => setSelectedMealType(meal.id)}
-                                className={`flex-1 flex flex-col items-center gap-0.5 py-2 rounded-xl transition-all border ${selectedMealType === meal.id
-                                    ? 'bg-primary/10 border-primary'
-                                    : 'bg-gray-50 border-transparent'
-                                    }`}
-                            >
-                                <span className={`material-symbols-outlined text-[16px] ${selectedMealType === meal.id ? 'text-primary' : 'text-gray-400'
-                                    }`}>{meal.icon}</span>
-                                <span className={`text-[10px] font-medium ${selectedMealType === meal.id ? 'text-primary' : 'text-gray-500'
-                                    }`}>{meal.label}</span>
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Save Button */}
-                    <div className="p-3 pt-2">
+                <div className="fixed bottom-20 left-0 right-0 z-30 px-4 pb-2">
+                    <div className="max-w-md mx-auto bg-white rounded-xl border border-gray-200 shadow-lg p-3">
                         <button
                             onClick={handleSaveAsMeal}
                             disabled={loading}
-                            className="flex items-center justify-center gap-2 w-full h-12 bg-primary hover:bg-[#0fd60f] active:scale-[0.98] transition-all rounded-xl shadow-lg shadow-primary/20 disabled:opacity-50"
+                            className="flex items-center justify-center gap-2 w-full h-12 bg-primary hover:bg-[#0fd60f] active:scale-[0.98] transition-all rounded-xl disabled:opacity-50"
                         >
-                            <span className="material-symbols-outlined text-black">check</span>
+                            <span className="material-symbols-outlined text-black text-[20px]">check</span>
                             <span className="text-black font-bold text-base">
                                 {loading ? 'Saving...' : 'Save as Meal'}
                             </span>

@@ -16,6 +16,30 @@ export default function CatalogNew() {
     const [entryId, setEntryId] = useState(null);
     const [entryDate, setEntryDate] = useState(null);
 
+    // Check if coming from analyze page - use both location.state and sessionStorage
+    const [returnTo, setReturnTo] = useState(null);
+
+    useEffect(() => {
+        console.log('CatalogNew - location.state:', location.state);
+        console.log('CatalogNew - location.state?.returnTo:', location.state?.returnTo);
+
+        // First check location.state
+        if (location.state?.returnTo) {
+            console.log('CatalogNew - Setting returnTo from location.state:', location.state.returnTo);
+            setReturnTo(location.state.returnTo);
+            // Also save to sessionStorage as backup
+            sessionStorage.setItem('catalogNewReturnTo', location.state.returnTo);
+        } else {
+            // Check sessionStorage as fallback
+            const savedReturnTo = sessionStorage.getItem('catalogNewReturnTo');
+            console.log('CatalogNew - sessionStorage returnTo:', savedReturnTo);
+            if (savedReturnTo) {
+                console.log('CatalogNew - Setting returnTo from sessionStorage:', savedReturnTo);
+                setReturnTo(savedReturnTo);
+            }
+        }
+    }, [location.state]);
+
     const [formData, setFormData] = useState({
         name: '',
         emoji: '🍽️',
@@ -84,7 +108,7 @@ export default function CatalogNew() {
                 setTimeout(() => navigate('/log'), 1000);
             } else {
                 // Create new product
-                await createProduct({
+                const newProduct = {
                     name: formData.name,
                     emoji: formData.emoji,
                     category: formData.category,
@@ -96,9 +120,51 @@ export default function CatalogNew() {
                         fat: formData.fat,
                         fiber: formData.fiber
                     }
-                });
+                };
+
+                await createProduct(newProduct);
                 setToast({ message: 'Product created!', type: 'success' });
-                setTimeout(() => navigate('/catalog'), 1000);
+
+                // If coming from analyze page, save the product to be added to detected items
+                if (returnTo === '/analyze') {
+                    const existingState = sessionStorage.getItem('foodAnalysisState');
+                    if (existingState) {
+                        try {
+                            const parsed = JSON.parse(existingState);
+                            // Add new item to the result items
+                            const newItem = {
+                                id: Date.now(),
+                                name: formData.name,
+                                calories: formData.calories,
+                                protein: formData.protein,
+                                carbs: formData.carbs,
+                                fat: formData.fat,
+                                fiber: formData.fiber,
+                                portion: formData.servingSize,
+                                basePortion: formData.servingSize,
+                                baseCalories: formData.calories,
+                                baseProtein: formData.protein,
+                                baseCarbs: formData.carbs,
+                                baseFat: formData.fat,
+                                baseFiber: formData.fiber,
+                                unit: formData.servingUnit
+                            };
+                            parsed.result = parsed.result || { items: [] };
+                            parsed.result.items = [...(parsed.result.items || []), newItem];
+                            sessionStorage.setItem('foodAnalysisState', JSON.stringify(parsed));
+                        } catch (e) {
+                            console.error('Error updating state:', e);
+                        }
+                    }
+                }
+
+                // Navigate back to returnTo if set, otherwise to catalog
+                const destination = returnTo || '/catalog';
+                console.log('CatalogNew - handleSave - returnTo:', returnTo);
+                console.log('CatalogNew - handleSave - destination:', destination);
+                // Clear the returnTo from sessionStorage
+                sessionStorage.removeItem('catalogNewReturnTo');
+                setTimeout(() => navigate(destination), 1000);
             }
         } catch (err) {
             console.error('Error saving:', err);
@@ -118,7 +184,10 @@ export default function CatalogNew() {
             {/* Header */}
             <header className="sticky top-0 z-50 bg-[#f6f8f6]/95 backdrop-blur-sm border-b border-gray-100">
                 <div className="flex items-center justify-between p-4 h-16">
-                    <button onClick={() => navigate(-1)} className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full hover:bg-black/5">
+                    <button onClick={() => {
+                        sessionStorage.removeItem('catalogNewReturnTo');
+                        navigate(returnTo || -1);
+                    }} className="flex items-center justify-center w-10 h-10 -ml-2 rounded-full hover:bg-black/5">
                         <span className="material-symbols-outlined text-[24px]">arrow_back</span>
                     </button>
                     <h1 className="text-lg font-bold">{isEditMode ? 'Edit Food Entry' : 'New Product'}</h1>
@@ -153,8 +222,8 @@ export default function CatalogNew() {
                                         key={cat}
                                         onClick={() => handleChange('category', cat)}
                                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${formData.category === cat
-                                                ? 'bg-primary text-black'
-                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                            ? 'bg-primary text-black'
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                             }`}
                                     >
                                         {cat}

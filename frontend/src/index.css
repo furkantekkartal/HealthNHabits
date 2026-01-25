@@ -26,6 +26,7 @@ body,
   -moz-osx-font-smoothing: grayscale;
   background-color: #f6f8f6;
   color: #102210;
+  overflow-x: hidden;
 }
 
 /* DISABLE DARK MODE COMPLETELY */

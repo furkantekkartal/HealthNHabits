@@ -130,25 +130,48 @@ export default function Dashboard() {
     const isDeficit = energyGap > 0;
     const fatGrams = Math.round(Math.abs(energyGap) / 7.7); // grams (7700kcal per kg)
 
-    // Donut chart: 3 segments - Eaten (orange), Activity (blue), Remaining (green)
-    const totalForDonut = totalOutput; // Max value for donut
-    const eatenPct = (eaten / totalForDonut) * 100;
-    const activityPct = (activity / totalForDonut) * 100;
-    const remainingPct = Math.max(0, 100 - eatenPct - activityPct);
+    // Donut chart: 2 segments - Eaten (orange) vs Output (green)
+    // Total = eaten + output, each segment proportional to its share
+    const totalForDonut = eaten + totalOutput;
+    const eatenPct = totalForDonut > 0 ? (eaten / totalForDonut) * 100 : 0;
+    const outputPct = totalForDonut > 0 ? (totalOutput / totalForDonut) * 100 : 0;
 
     // SVG calculations for donut segments
     const circumference = 2 * Math.PI * 40; // r=40
     const eatenStroke = (eatenPct / 100) * circumference;
-    const activityStroke = (activityPct / 100) * circumference;
-    const remainingStroke = (remainingPct / 100) * circumference;
+    const outputStroke = (outputPct / 100) * circumference;
 
-    // Macro goals from profile
-    const macroGoals = {
-        protein: profile?.dailyProteinGoal || 160,
-        carbs: profile?.dailyCarbsGoal || 250,
-        fat: profile?.dailyFatGoal || 70,
-        fiber: profile?.dailyFiberGoal || 35
+    // Calculate macro goals dynamically based on TDEE and body weight
+    // Standards: Protein = 1g/kg (active: 1.2-1.6g/kg), Fat = 25-30% of kcal, Carbs = remainder, Fiber = 14g per 1000kcal
+    const calculateMacroGoals = () => {
+        const weight = profile?.weight?.value || 70;
+        const activityLevel = profile?.activityLevel || 'lightly_active';
+
+        // Protein: 0.8g/kg sedentary, up to 1.6g/kg very active
+        const proteinMultipliers = {
+            sedentary: 0.8,
+            lightly_active: 1.0,
+            active: 1.2,
+            very_active: 1.6
+        };
+        const proteinGoal = Math.round(weight * (proteinMultipliers[activityLevel] || 1.0));
+
+        // Fat: 25% of total calories (9 kcal per gram)
+        const fatGoal = Math.round((tdee * 0.25) / 9);
+
+        // Carbs: Remainder after protein (4 kcal/g) and fat (9 kcal/g)
+        const proteinCals = proteinGoal * 4;
+        const fatCals = fatGoal * 9;
+        const carbCals = tdee - proteinCals - fatCals;
+        const carbGoal = Math.round(Math.max(100, carbCals / 4)); // Minimum 100g
+
+        // Fiber: 14g per 1000 kcal, typically 25-38g per day
+        const fiberGoal = Math.min(38, Math.max(25, Math.round((tdee / 1000) * 14)));
+
+        return { protein: proteinGoal, carbs: carbGoal, fat: fatGoal, fiber: fiberGoal };
     };
+
+    const macroGoals = calculateMacroGoals();
 
     const waterProgress = (data.water.current / data.water.goal) * 100;
     const stepsProgress = (data.steps.current / data.steps.goal) * 100;
@@ -169,6 +192,17 @@ export default function Dashboard() {
         const dateStr = getDateString();
         const historyEntry = weightHistory.find(h => h.date === dateStr);
         return historyEntry?.weight || data.weight.current;
+    };
+
+    // Get weight zone color based on BMI
+    const getWeightZoneColor = (weight) => {
+        const height = profile?.height?.value || 170; // height in cm
+        const heightM = height / 100; // convert to meters
+        const bmi = weight / (heightM * heightM);
+
+        if (bmi >= 25) return 'text-orange-500'; // Overweight
+        if (bmi >= 18.5) return 'text-emerald-600'; // Normal
+        return 'text-blue-500'; // Underweight
     };
 
     if (loading) {
@@ -215,7 +249,7 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Energy Donut - 3 Colors: Orange (Eaten), Blue (Activity), Green (Remaining) */}
+            {/* Energy Donut - 2 Colors: Orange (Eaten) vs Green (Output) */}
             <Link to="/energy" className="block">
                 <div className="flex flex-col items-center justify-center py-6 relative">
                     <div className="relative w-72 h-72 flex items-center justify-center cursor-pointer active:scale-95 transition-transform">
@@ -231,20 +265,12 @@ export default function Dashboard() {
                                 strokeDashoffset="0"
                                 className="transition-all duration-1000"
                             />
-                            {/* Activity (Blue) */}
-                            <circle
-                                cx="50" cy="50" r="40" fill="none" stroke="#3b82f6" strokeWidth="8"
-                                strokeLinecap="round"
-                                strokeDasharray={`${activityStroke} ${circumference}`}
-                                strokeDashoffset={-eatenStroke}
-                                className="transition-all duration-1000"
-                            />
-                            {/* Remaining (Green) */}
+                            {/* Output (Green) */}
                             <circle
                                 cx="50" cy="50" r="40" fill="none" stroke="#10b981" strokeWidth="8"
                                 strokeLinecap="round"
-                                strokeDasharray={`${remainingStroke} ${circumference}`}
-                                strokeDashoffset={-(eatenStroke + activityStroke)}
+                                strokeDasharray={`${outputStroke} ${circumference}`}
+                                strokeDashoffset={-eatenStroke}
                                 className="transition-all duration-1000"
                             />
                         </svg>
@@ -262,20 +288,37 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    {/* Legend */}
-                    <div className="mt-2 flex items-center gap-4 px-4 py-2 bg-gray-100 rounded-full">
+                    {/* Legend - 2 colors */}
+                    <div className="mt-2 flex items-center gap-6 px-4 py-2 bg-gray-100 rounded-full">
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                            <span className="text-xs font-medium text-gray-600">Eaten</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                            <span className="text-xs font-medium text-gray-600">Activity</span>
+                            <span className="text-xs font-medium text-gray-600">Eaten ({eaten.toLocaleString()})</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                            <span className="text-xs font-medium text-gray-600">Remaining</span>
+                            <span className="text-xs font-medium text-gray-600">Output ({totalOutput.toLocaleString()})</span>
                         </div>
+                    </div>
+                </div>
+            </Link>
+
+            {/* Water Intake Card */}
+            <Link to="/water" className="block px-6 mb-4">
+                <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                            <span className="material-symbols-outlined text-cyan-500" style={{ fontSize: '20px' }}>water_drop</span>
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Water Intake</span>
+                        </div>
+                        <span className="text-sm font-bold text-gray-700">
+                            {data.water.current.toLocaleString()}ml / {data.water.goal.toLocaleString()}ml
+                        </span>
+                    </div>
+                    <div className="h-2 w-full bg-cyan-100 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-cyan-500 rounded-full transition-all duration-500"
+                            style={{ width: `${Math.min(100, waterProgress)}%` }}
+                        ></div>
                     </div>
                 </div>
             </Link>
@@ -326,10 +369,10 @@ export default function Dashboard() {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div >
 
             {/* Energy Gap Card */}
-            <div className="px-6 mb-6">
+            < div className="px-6 mb-6" >
                 <Link to="/energy" className="block bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
@@ -380,10 +423,10 @@ export default function Dashboard() {
                         </div>
                     </div>
                 </Link>
-            </div>
+            </div >
 
             {/* Eaten / Burned Cards */}
-            <div className="px-6 grid grid-cols-2 gap-4 mb-6">
+            < div className="px-6 grid grid-cols-2 gap-4 mb-6" >
                 <Link to="/catalog" className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-3">
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
@@ -415,10 +458,10 @@ export default function Dashboard() {
                         <div className="bg-blue-500 h-full rounded-full" style={{ width: `${Math.min(100, (activity / 500) * 100)}%` }}></div>
                     </div>
                 </Link>
-            </div>
+            </div >
 
             {/* Weight Card with Graph */}
-            <div className="px-6 mb-6">
+            < div className="px-6 mb-6" >
                 <Link to="/weight" className="block bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -431,17 +474,89 @@ export default function Dashboard() {
                             </div>
                         </div>
                         <div className="text-right">
-                            <span className="text-lg font-bold text-emerald-600">{getDateWeight()?.toFixed?.(1) || getDateWeight()}</span>
+                            <span className={`text-lg font-bold ${getWeightZoneColor(getDateWeight())}`}>{getDateWeight()?.toFixed?.(1) || getDateWeight()}</span>
                             <span className="text-xs text-gray-400 ml-0.5">kg</span>
                         </div>
                     </div>
-                    {/* Mini Weight Graph */}
-                    <div className="relative w-full h-24">
-                        <div className="absolute inset-0 flex flex-col h-20">
-                            <div className="flex-1 bg-orange-100/30 border-b border-dashed border-orange-200/50"></div>
-                            <div className="flex-[1.5] bg-emerald-50/40 border-b border-dashed border-emerald-100/50"></div>
-                            <div className="flex-1 bg-blue-50/40"></div>
+                    {/* Mini Weight Graph with Line & Dots */}
+                    <div className="relative w-full h-32">
+                        {/* Background Zones */}
+                        <div className="absolute inset-0 flex flex-col h-24">
+                            <div className="flex-1 bg-orange-100/40 border-b border-dashed border-orange-200/60 relative">
+                                <span className="absolute right-1 top-0.5 text-[8px] font-bold uppercase text-orange-500/70">Overweight</span>
+                            </div>
+                            <div className="flex-[1.5] bg-emerald-100/45 border-b border-dashed border-emerald-200/55 relative">
+                                <span className="absolute right-1 top-0.5 text-[8px] font-bold uppercase text-emerald-500/70">Normal</span>
+                            </div>
+                            <div className="flex-1 bg-blue-100/40 relative">
+                                <span className="absolute right-1 top-0.5 text-[8px] font-bold uppercase text-blue-500/70">Underweight</span>
+                            </div>
                         </div>
+                        {/* SVG Line Graph */}
+                        <div className="absolute inset-0 h-24">
+                            <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 300 100">
+                                <defs>
+                                    <linearGradient id="weightGradient" x1="0" x2="0" y1="0" y2="1">
+                                        <stop offset="0%" stopColor="#10b981" stopOpacity="0.15"></stop>
+                                        <stop offset="100%" stopColor="#10b981" stopOpacity="0"></stop>
+                                    </linearGradient>
+                                </defs>
+                                {weightHistory.length > 0 && (() => {
+                                    // Get the last 7 entries or pad with nulls
+                                    const data = weightHistory.slice(-7);
+                                    const weights = data.map(d => d?.weight || null).filter(w => w !== null);
+                                    if (weights.length === 0) return null;
+
+                                    const minW = Math.min(...weights) - 2;
+                                    const maxW = Math.max(...weights) + 2;
+                                    const range = maxW - minW || 1;
+
+                                    // Zone thresholds (based on y position: 0-28.5% = overweight, 28.5-71.5% = normal, 71.5-100% = underweight)
+                                    // The chart has flex-1, flex-[1.5], flex-1 = total 3.5 parts
+                                    // Overweight: 0% - 28.57% (1/3.5)
+                                    // Normal: 28.57% - 71.43% (1.5/3.5)
+                                    // Underweight: 71.43% - 100% (1/3.5)
+                                    const getZoneColor = (yPercent) => {
+                                        if (yPercent <= 28.57) return { fill: '#f97316', stroke: '#ea580c' }; // Orange for overweight
+                                        if (yPercent <= 71.43) return { fill: '#10b981', stroke: '#059669' }; // Emerald for normal
+                                        return { fill: '#3b82f6', stroke: '#2563eb' }; // Blue for underweight
+                                    };
+
+                                    // Build path points
+                                    const points = data.map((d, i) => {
+                                        if (!d?.weight) return null;
+                                        const x = (i / (data.length - 1 || 1)) * 300;
+                                        const y = 100 - ((d.weight - minW) / range) * 100;
+                                        const zoneColors = getZoneColor(y);
+                                        return { x, y, weight: d.weight, ...zoneColors };
+                                    }).filter(p => p !== null);
+
+                                    if (points.length < 2) return null;
+
+                                    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+                                    const areaD = `${pathD} L${points[points.length - 1].x},100 L${points[0].x},100 Z`;
+
+                                    return (
+                                        <>
+                                            <path d={areaD} fill="url(#weightGradient)" />
+                                            <path d={pathD} fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                            {points.map((p, i) => (
+                                                <circle
+                                                    key={i}
+                                                    cx={p.x}
+                                                    cy={p.y}
+                                                    r={i === points.length - 1 ? 5 : 3}
+                                                    fill={p.fill}
+                                                    stroke={p.stroke}
+                                                    strokeWidth={i === points.length - 1 ? 2.5 : 2}
+                                                />
+                                            ))}
+                                        </>
+                                    );
+                                })()}
+                            </svg>
+                        </div>
+                        {/* Day Labels */}
                         <div className="flex justify-between w-full text-[10px] text-gray-400 absolute bottom-0 pt-2">
                             {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
                                 <span key={i}>{day}</span>
@@ -452,7 +567,7 @@ export default function Dashboard() {
             </div>
 
             {/* Water Intake Card */}
-            <div className="px-6 flex flex-col gap-4 mb-6">
+            < div className="px-6 flex flex-col gap-4 mb-6" >
                 <Link to="/water" className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
@@ -500,10 +615,10 @@ export default function Dashboard() {
                         <div className="absolute top-0 left-0 h-full bg-purple-500 rounded-full" style={{ width: `${Math.min(100, stepsProgress)}%` }}></div>
                     </div>
                 </Link>
-            </div>
+            </div >
 
             {/* Floating Action Buttons */}
-            <div className="fixed bottom-24 right-6 z-20 flex flex-col gap-3 items-end">
+            < div className="fixed bottom-24 right-6 z-20 flex flex-col gap-3 items-end" >
                 <button onClick={() => navigate('/weight')} className="flex items-center gap-2 group">
                     <span className="bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                         Log Weight
@@ -515,7 +630,7 @@ export default function Dashboard() {
                 <button onClick={() => navigate('/analyze')} className="group relative flex items-center justify-center w-14 h-14 bg-primary rounded-full shadow-lg shadow-primary/40 hover:scale-105 transition-transform active:scale-95">
                     <span className="material-symbols-outlined text-black text-3xl font-bold">add</span>
                 </button>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
