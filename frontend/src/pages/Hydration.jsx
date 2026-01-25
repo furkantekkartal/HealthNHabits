@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getDashboard, getLogByDate, addWaterEntry, getProfile, updateProfile } from '../services/api';
+import { getDashboard, getLogByDate, addWaterEntry, removeWaterEntry, getProfile, updateProfile } from '../services/api';
 import { useDate } from '../context/DateContext';
 import { PageLoading, Toast } from '../components/ui/UIComponents';
 
@@ -70,6 +70,21 @@ export default function Hydration() {
         }
     };
 
+    const removeWater = async (amount) => {
+        setUpdating(true);
+        try {
+            const dateStr = isToday() ? undefined : getDateString();
+            await removeWaterEntry(amount, dateStr);
+            setWater(prev => ({ ...prev, current: Math.max(0, prev.current - amount) }));
+            setToast({ message: `-${amount}ml removed`, type: 'success' });
+        } catch (err) {
+            console.error('Error removing water:', err);
+            setToast({ message: 'Failed to remove water', type: 'error' });
+        } finally {
+            setUpdating(false);
+        }
+    };
+
     const addCustom = async () => {
         const amount = parseInt(customAmount);
         if (amount > 0) {
@@ -92,8 +107,6 @@ export default function Hydration() {
     };
 
     const progress = Math.min(100, (water.current / water.goal) * 100);
-    const circumference = 2 * Math.PI * 120;
-    const strokeDashoffset = circumference * (1 - progress / 100);
     const remaining = Math.max(0, water.goal - water.current);
 
     if (loading) {
@@ -149,9 +162,9 @@ export default function Hydration() {
                 </div>
             </div>
 
-            {/* Main Progress Circle */}
+            {/* Main Progress Circle - Fixed width container */}
             <main className="flex-1 flex flex-col items-center justify-center relative py-4 z-10">
-                <div className="relative w-56 h-56 flex items-center justify-center">
+                <div className="relative flex items-center justify-center" style={{ width: '224px', height: '224px' }}>
                     <svg className="absolute w-full h-full transform -rotate-90">
                         <circle className="text-slate-100" cx="112" cy="112" fill="transparent" r="100" stroke="currentColor" strokeWidth="10"></circle>
                         <circle
@@ -163,11 +176,13 @@ export default function Hydration() {
                         ></circle>
                     </svg>
 
-                    {/* Center Content */}
-                    <div className="relative z-10 flex flex-col items-center text-center">
+                    {/* Center Content - Fixed width to prevent layout shift */}
+                    <div className="relative z-10 flex flex-col items-center text-center" style={{ minWidth: '120px' }}>
                         <span className="material-symbols-outlined text-cyan-500 mb-1" style={{ fontSize: '24px' }}>water_drop</span>
-                        <div className="flex items-baseline gap-1">
-                            <span className="text-4xl font-black text-slate-800 tracking-tight tabular-nums">{water.current.toLocaleString()}</span>
+                        <div className="flex items-baseline gap-1 justify-center">
+                            <span className="text-4xl font-black text-slate-800 tracking-tight tabular-nums" style={{ minWidth: '80px', textAlign: 'center' }}>
+                                {water.current.toLocaleString()}
+                            </span>
                             <span className="text-base font-medium text-slate-400">ml</span>
                         </div>
                         <div className="mt-1 text-xs font-bold text-cyan-600">{Math.round(progress)}% <span className="text-slate-400 font-medium uppercase">of goal</span></div>
@@ -214,7 +229,8 @@ export default function Hydration() {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-4 gap-3">
+                        {/* Add Water Buttons */}
                         {QUICK_AMOUNTS.map((item) => (
                             <button
                                 key={item.amount}
@@ -235,17 +251,32 @@ export default function Hydration() {
                             </button>
                         ))}
 
-                        {/* Other/Custom */}
+                        {/* Remove Water Buttons - Design Reference */}
                         <button
-                            onClick={() => setShowCustom(true)}
-                            className="group relative flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 border border-transparent hover:border-slate-200 transition-all active:scale-95"
+                            onClick={() => removeWater(200)}
+                            disabled={updating || water.current < 200}
+                            className="group relative flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-red-50 border border-red-100 hover:bg-red-100 transition-all active:scale-95 disabled:opacity-50"
                         >
-                            <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-400">
-                                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
+                            <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-red-500">
+                                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>remove</span>
                             </div>
                             <div className="text-center">
-                                <span className="block text-xs font-bold text-slate-600">Other</span>
-                                <span className="block text-[10px] text-slate-400">Custom</span>
+                                <span className="block text-xs font-bold text-red-600">-200ml</span>
+                                <span className="block text-[10px] text-red-400">Remove</span>
+                            </div>
+                        </button>
+
+                        <button
+                            onClick={() => removeWater(500)}
+                            disabled={updating || water.current < 500}
+                            className="group relative flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-red-50 border border-red-100 hover:bg-red-100 transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-red-500">
+                                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>remove</span>
+                            </div>
+                            <div className="text-center">
+                                <span className="block text-xs font-bold text-red-600">-500ml</span>
+                                <span className="block text-[10px] text-red-400">Remove</span>
                             </div>
                         </button>
                     </div>
