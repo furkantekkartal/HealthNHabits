@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getProfile, updateProfile, getTodayLog, addWeightEntry } from '../services/api';
 import { PageLoading, Toast } from '../components/ui/UIComponents';
+import ReactCrop from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
 export default function Profile() {
     const navigate = useNavigate();
@@ -22,6 +24,13 @@ export default function Profile() {
         dailyWaterGoal: 2000,
         dailyStepsGoal: 10000,
     });
+
+    // Image cropping state
+    const [showCropModal, setShowCropModal] = useState(false);
+    const [imageSrc, setImageSrc] = useState(null);
+    const [crop, setCrop] = useState({ unit: '%', width: 90, aspect: 1 });
+    const [completedCrop, setCompletedCrop] = useState(null);
+    const imgRef = useRef(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -62,15 +71,95 @@ export default function Profile() {
         fetchData();
     }, []);
 
+    // Handle image selection - opens crop modal
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
+            if (file.size > 10 * 1024 * 1024) {
+                setToast({ message: 'Image size must be less than 10MB', type: 'error' });
+                return;
+            }
+            if (!file.type.startsWith('image/')) {
+                setToast({ message: 'Please select an image file', type: 'error' });
+                return;
+            }
             const reader = new FileReader();
             reader.onloadend = () => {
-                setFormData({ ...formData, profileImage: reader.result });
+                setImageSrc(reader.result);
+                setShowCropModal(true);
             };
             reader.readAsDataURL(file);
         }
+    };
+
+    // Initialize crop when image loads
+    const onImageLoaded = (image) => {
+        if (!image) return;
+        imgRef.current = image;
+        const displayedWidth = image.width;
+        const displayedHeight = image.height;
+        const minDimension = Math.min(displayedWidth, displayedHeight);
+        const cropSize = minDimension * 0.9;
+        const x = (displayedWidth - cropSize) / 2;
+        const y = (displayedHeight - cropSize) / 2;
+        setCrop({
+            unit: 'px',
+            x,
+            y,
+            width: cropSize,
+            height: cropSize,
+            aspect: 1
+        });
+    };
+
+    // Create cropped image at 128x128
+    const getCroppedImg = async (image, crop) => {
+        if (!image || !crop.width || !crop.height) return null;
+        const canvas = document.createElement('canvas');
+        const scaleX = image.naturalWidth / image.width;
+        const scaleY = image.naturalHeight / image.height;
+        canvas.width = 128;
+        canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(
+            image,
+            crop.x * scaleX,
+            crop.y * scaleY,
+            crop.width * scaleX,
+            crop.height * scaleY,
+            0,
+            0,
+            128,
+            128
+        );
+        return new Promise((resolve) => {
+            canvas.toBlob((blob) => {
+                if (!blob) { resolve(null); return; }
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+            }, 'image/jpeg', 0.9);
+        });
+    };
+
+    // Confirm crop and close modal
+    const handleCropConfirm = async () => {
+        if (!imgRef.current || !completedCrop) return;
+        const croppedImage = await getCroppedImg(imgRef.current, completedCrop);
+        if (croppedImage) {
+            setFormData({ ...formData, profileImage: croppedImage });
+            setShowCropModal(false);
+            setImageSrc(null);
+        }
+    };
+
+    // Cancel crop
+    const handleCropCancel = () => {
+        setShowCropModal(false);
+        setImageSrc(null);
+        setCrop({ unit: '%', width: 90, aspect: 1 });
+        setCompletedCrop(null);
     };
 
     const handleSave = async () => {
@@ -126,6 +215,54 @@ export default function Profile() {
             {/* Toast */}
             {toast && (
                 <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+            )}
+
+            {/* Crop Modal */}
+            {showCropModal && imageSrc && (
+                <div
+                    className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4"
+                    onClick={handleCropCancel}
+                >
+                    <div
+                        className="bg-white rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">Crop Your Photo</h3>
+                        <div className="flex justify-center mb-4">
+                            <ReactCrop
+                                crop={crop}
+                                onChange={(c) => setCrop(c)}
+                                onComplete={(c) => setCompletedCrop(c)}
+                                aspect={1}
+                                minWidth={50}
+                                circularCrop
+                            >
+                                <img
+                                    ref={imgRef}
+                                    src={imageSrc}
+                                    alt="Crop"
+                                    onLoad={(e) => e.target && onImageLoaded(e.target)}
+                                    style={{ maxWidth: '100%', maxHeight: '400px', display: 'block' }}
+                                />
+                            </ReactCrop>
+                        </div>
+                        <p className="text-xs text-gray-500 text-center mb-4">Drag to adjust the crop area</p>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={handleCropCancel}
+                                className="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCropConfirm}
+                                className="px-5 py-2.5 rounded-xl bg-primary text-black font-bold hover:bg-[#0fd60f] transition-all"
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Header */}
