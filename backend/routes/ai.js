@@ -97,7 +97,6 @@ router.post('/analyze-food', upload.single('image'), async (req, res) => {
         const imageBase64 = req.file.buffer.toString('base64');
         const mimeType = req.file.mimetype;
 
-        console.log('Analyzing food image with OpenRouter...');
 
         let text = await analyzeWithOpenRouter(imageBase64, mimeType);
 
@@ -124,7 +123,6 @@ router.post('/analyze-food', upload.single('image'), async (req, res) => {
             }));
         }
 
-        console.log('Analysis successful!');
         res.json(analysisResult);
 
     } catch (error) {
@@ -149,7 +147,6 @@ router.post('/analyze-text', async (req, res) => {
             return res.status(500).json({ error: 'OPENROUTER_API_KEY not configured' });
         }
 
-        console.log('Analyzing food description:', description);
 
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
@@ -208,7 +205,6 @@ Rules:
         text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
         const result = JSON.parse(text);
-        console.log('Text analysis successful!');
         res.json(result);
 
     } catch (error) {

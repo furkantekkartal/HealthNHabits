@@ -48,17 +48,13 @@ router.put('/', async (req, res) => {
             };
         }
 
-        console.log('Sanitized data:', JSON.stringify(sanitizedData, null, 2));
 
         if (!profile) {
             profile = new UserProfile({ userId, ...sanitizedData });
-            console.log('Creating new profile');
         } else {
             Object.assign(profile, sanitizedData);
-            console.log('Updating existing profile');
         }
         await profile.save();
-        console.log('Profile saved successfully, _id:', profile._id);
 
         // Calculate recommended calorie goal based on profile
         const tdee = profile.calculateTDEE();

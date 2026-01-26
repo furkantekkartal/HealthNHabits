@@ -1,192 +1,308 @@
-# Diet & Activity Tracker 🥗📊
+# HealtNHabbits 🥗📊
 
-A **mobile-first, AI-assisted diet and activity tracking app** designed for real daily use.
-This project focuses on **speed, clarity, and habit formation**, combining AI-powered analysis with fast manual logging.
+A **mobile-first, AI-powered health and habit tracking application** built for real daily use. Track your nutrition, hydration, weight, and activity with an intuitive interface that prioritizes speed and simplicity.
 
-> 📐 **Draft app designs and UI flows are already provided in the project directory** and are considered the source of truth for frontend and backend implementation.
-
----
-
-## 🚀 Project Vision
-
-Most health apps fail because logging is slow and overwhelming.
-This app is built to be **opened multiple times per day without friction**.
-
-**Core idea:**
-Fast daily input > perfect accuracy.
-
-AI helps users log faster, but users always stay in control.
+![React](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-7.2-646CFF?logo=vite&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.1-06B6D4?logo=tailwindcss&logoColor=white)
+![Express](https://img.shields.io/badge/Express-5.2-000000?logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)
 
 ---
 
-## ✨ Key Features
+## ✨ Features
 
-### 🍽️ Food Tracking (Two Ways)
+### 🍽️ AI-Powered Food Analysis
+- **Photo Analysis**: Take or upload a food photo and get instant nutritional estimates
+- **Text Description**: Describe your meal and AI generates nutritional data
+- **Editable Results**: All AI estimates are fully editable before logging
+- **Smart Catalog**: Save frequently consumed items for one-tap logging
 
-#### 1. AI Food Photo Analysis
+### 📊 Dashboard
+- Daily calorie balance with TDEE calculations
+- Energy gap visualization (deficit/surplus with fat gram equivalent)
+- Macro tracking (Protein, Carbs, Fat, Fiber)
+- Progress bars for all daily goals
+- Date navigation for historical data
 
-* Take or upload a photo of food
-* AI estimates:
+### 💧 Hydration Tracking
+- Quick-add water buttons (250ml, 500ml, custom)
+- Visual progress bars and glass indicators
+- Daily goal customization
 
-  * Calories (kcal & kJ)
-  * Protein, carbs, sugar, fat
-  * Portion size
-* Results are **fully editable**
-* Meals can be saved as reusable catalog items
+### 🚶 Activity & Steps
+- Manual step entry with calorie burn calculation
+- Personalized calculations based on weight and stride length
+- Steps contribute to daily energy expenditure
 
-#### 2. Product Catalog (Fast Logging)
+### ⚖️ Weight Management
+- Daily weight logging with date support
+- Historical weight chart with 7-day trends
+- BMI-based zone coloring (Underweight/Normal/Overweight)
+- Weight data automatically updates user profile
 
-* Personal catalog of frequently consumed foods & drinks
-* Examples:
+### 👤 Comprehensive Profile
+- Personal metrics (height, weight, gender, birth year)
+- Activity level selection with TDEE calculation
+- Profile picture with crop functionality
+- Customizable daily goals (calories, water, steps)
 
-  * 600 ml water bottle
-  * Latte (small / medium / large)
-  * Hot chocolate
-* Features:
-
-  * One-tap add
-  * Variants & quantities
-  * Most-used items appear first
-  * Manual reordering
-  * Custom product creation
-  * Products can be added from AI analysis
-
----
-
-### 💧 Water Tracking
-
-* Daily water intake tracking
-* Quick-add buttons for common volumes
-* Water progress shown clearly on the main dashboard
-* Water logged via:
-
-  * Catalog items
-  * Manual quick add
+### 🔐 Authentication
+- JWT-based secure authentication
+- User registration and login
+- Protected routes for all features
 
 ---
 
-### 🚶 Steps & Activity Tracking
+## 🛠️ Tech Stack
 
-* Manual daily step entry
-* AI calculates calories burned using:
+### Frontend
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| React | 19.2 | UI Framework |
+| Vite | 7.2 | Build Tool & Dev Server |
+| TailwindCSS | 4.1 | Styling |
+| React Router | 7.12 | Navigation |
+| Axios | 1.13 | HTTP Client |
+| react-image-crop | 11.0 | Profile Picture Cropping |
 
-  * Gender
-  * Height
-  * Weight
-  * Age
-  * Stride length (optional)
-* Burned calories contribute to daily balance
+### Backend
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Node.js | 20+ | Runtime |
+| Express | 5.2 | Web Framework |
+| MongoDB | Atlas | Database |
+| Mongoose | 9.1 | ODM |
+| JWT | 9.0 | Authentication |
+| bcryptjs | 3.0 | Password Hashing |
+| Multer | 2.0 | File Uploads |
 
----
-
-### ⚖️ Weight Tracking
-
-* Simple weight entry by date
-* Historical weight data stored
-* Weight trends displayed via charts
-
----
-
-### 🧍 Physical Profile
-
-Used for accurate AI calculations:
-
-* Gender
-* Birth year
-* Height
-* Weight
-* Activity level
-* Optional stride length
-
-Editable at any time.
+### AI Integration
+- **OpenRouter API** with Google Gemini 2.0 Flash for food image and text analysis
 
 ---
 
-## 🏠 Dashboard (Core Screen)
-
-The dashboard shows **today at a glance**:
-
-* Calories consumed
-* Calories burned
-* Remaining calories
-* Water intake progress
-* Step count
-* Quick actions:
-
-  * Add water
-  * Add food from catalog
-  * Take food photo
-  * Add steps
-  * Add weight
-
-This screen is the center of daily usage.
-
----
-
-## 🧠 Design Philosophy
-
-* Fast daily logging beats perfect data
-* AI assists, never blocks
-* Everything is editable
-* Most-used actions are always one tap away
-* Designed for habit formation, not obsession
-
----
-
-## 🗂️ Project Structure
+## 📁 Project Structure
 
 ```
-/designs        -> Draft UI/UX designs and app flows (source of truth)
-/frontend       -> Mobile/web frontend implementation
-/backend        -> API, database, AI integration
-/docs           -> Architecture & technical documentation
+HealtNHabbits/
+├── frontend/                 # React + Vite frontend
+│   ├── src/
+│   │   ├── components/       # Reusable UI components
+│   │   │   ├── layout/       # Layout components (navbar, sidebar)
+│   │   │   └── ui/           # UI primitives (toast, loading)
+│   │   ├── context/          # React contexts (Auth, Date)
+│   │   ├── pages/            # Page components
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── Catalog.jsx
+│   │   │   ├── FoodAnalysis.jsx
+│   │   │   ├── Hydration.jsx
+│   │   │   ├── Steps.jsx
+│   │   │   ├── Weight.jsx
+│   │   │   ├── Profile.jsx
+│   │   │   └── ...
+│   │   ├── services/         # API client
+│   │   └── App.jsx           # Main app component
+│   └── package.json
+│
+├── backend/                  # Express API server
+│   ├── models/               # Mongoose schemas
+│   │   ├── User.js           # User authentication
+│   │   ├── UserProfile.js    # Profile with BMR/TDEE
+│   │   ├── DailyLog.js       # Daily entries (food, water, steps, weight)
+│   │   └── Product.js        # Food catalog items
+│   ├── routes/               # API routes
+│   │   ├── auth.js           # Authentication endpoints
+│   │   ├── profile.js        # Profile management
+│   │   ├── products.js       # Product catalog CRUD
+│   │   ├── logs.js           # Daily log entries
+│   │   ├── dashboard.js      # Dashboard data
+│   │   └── ai.js             # AI analysis endpoints
+│   ├── middleware/           # Express middleware
+│   │   └── auth.js           # JWT verification
+│   ├── scripts/              # Database utilities
+│   └── server.js             # Entry point
+│
+└── designs/                  # UI/UX design files
 ```
 
-> ⚠️ **Important:**
-> Frontend and backend implementations must strictly follow the designs located in the `designs/` directory.
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 20+
+- MongoDB Atlas account (or local MongoDB)
+- OpenRouter API key (for AI features)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/furkantekkartal/HealtNHabbits.git
+   cd HealtNHabbits
+   ```
+
+2. **Install backend dependencies**
+   ```bash
+   cd backend
+   npm install
+   ```
+
+3. **Configure backend environment**
+   
+   Create `.env` file in `/backend`:
+   ```env
+   # MongoDB
+   MONGODB_URI=mongodb+srv://your-connection-string
+   
+   # JWT
+   JWT_SECRET=your-secure-secret-key
+   
+   # AI (OpenRouter)
+   OPENROUTER_API_KEY=your-openrouter-api-key
+   
+   # Server
+   PORT=5000
+   ```
+
+4. **Install frontend dependencies**
+   ```bash
+   cd ../frontend
+   npm install
+   ```
+
+5. **Start development servers**
+
+   Backend (from `/backend`):
+   ```bash
+   npm run dev
+   ```
+
+   Frontend (from `/frontend`):
+   ```bash
+   npm run dev
+   ```
+
+6. **Open in browser**
+   
+   Navigate to `http://localhost:5173`
 
 ---
 
-## 🛠️ Tech Stack (Planned)
+## 📡 API Endpoints
 
-**Frontend**
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register new user |
+| POST | `/api/auth/login` | Login user |
+| GET | `/api/auth/me` | Get current user |
 
-* React or React Native
-* Mobile-first design
-* Charting for trends & summaries
+### Profile
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/profile` | Get user profile |
+| PUT | `/api/profile` | Update profile |
+| GET | `/api/profile/calculations` | Get BMR/TDEE |
 
-**Backend**
+### Products (Food Catalog)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/products` | List all products |
+| GET | `/api/products/most-used` | Top used products |
+| POST | `/api/products` | Create product |
+| PUT | `/api/products/:id` | Update product |
+| DELETE | `/api/products/:id` | Delete product |
 
-* Node.js + Express/Fastify
-* MongoDB
-* REST APIs
-* AI microservices for:
+### Daily Logs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/logs/today` | Get today's log |
+| GET | `/api/logs/date/:date` | Get log by date |
+| POST | `/api/logs/food` | Add food entry |
+| POST | `/api/logs/water` | Add water entry |
+| POST | `/api/logs/steps` | Update steps |
+| POST | `/api/logs/weight` | Update weight |
+| DELETE | `/api/logs/entry/:id` | Delete entry |
 
-  * Food image analysis
-  * Step-based calorie burn calculation
+### AI Analysis
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/ai/analyze-food` | Analyze food image |
+| POST | `/api/ai/analyze-text` | Analyze food description |
+
+### Dashboard
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/dashboard` | Today's summary |
+| GET | `/api/dashboard/weekly` | Weekly summary |
 
 ---
 
-## 🎯 Target Users
+## 🔧 Environment Configurations
 
-* People who want awareness, not obsession
-* Users who value speed and simplicity
-* Anyone tired of overcomplicated nutrition apps
+The app supports multiple environments:
+
+| Environment | Frontend Port | Backend Port | Config File |
+|-------------|---------------|--------------|-------------|
+| Development | 3050 | 5050 | `.env.dev` |
+| Master | 3040 | 5040 | `.env.master` |
+
+Run specific environment:
+```bash
+# Backend
+npm run dev:dev    # Development
+npm run dev:master # Master
+
+# Frontend  
+npm run start:dev    # Development
+npm run start:master # Master
+```
 
 ---
 
-## 📌 Project Status
+## 🧮 Calorie Calculations
 
-🚧 Active development
-Designs are complete. Frontend and backend are being implemented based on those designs.
+### BMR (Basal Metabolic Rate) - Mifflin-St Jeor Formula
+- **Male**: BMR = 10 × weight(kg) + 6.25 × height(cm) - 5 × age + 5
+- **Female**: BMR = 10 × weight(kg) + 6.25 × height(cm) - 5 × age - 161
+
+### TDEE (Total Daily Energy Expenditure)
+| Activity Level | Multiplier |
+|----------------|------------|
+| Sedentary | 1.2 |
+| Lightly Active | 1.35 |
+| Active | 1.5 |
+| Very Active | 1.7 |
+
+### Energy Gap
+```
+Energy Gap = TDEE + Activity Burned - Calories Eaten
+Fat Grams ≈ Energy Gap / 7.7
+```
+
+---
+
+## 🎨 Design Philosophy
+
+- **Fast daily logging beats perfect data** - Optimized for quick entries
+- **AI assists, never blocks** - All estimates are editable
+- **One-tap actions** - Most-used items appear first
+- **Habit formation over obsession** - Clean, encouraging UI
 
 ---
 
 ## 📄 License
 
-TBD
+MIT License - See [LICENSE](LICENSE) for details.
 
 ---
 
-**In one sentence:**
-*A fast, AI-assisted diet and activity tracker built for real daily life — not perfect data.*
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+---
+
+**Built with ❤️ for a healthier lifestyle**
