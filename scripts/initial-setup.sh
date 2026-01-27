@@ -54,14 +54,14 @@ mkdir -p ~/apps
 cd ~/apps
 
 # 6. Clone repository (if not already cloned)
-if [ -d "HealthNHabbits" ]; then
-    echo -e "${GREEN}✓ HealthNHabbits directory already exists${NC}"
+if [ -d "HealthNHabits" ]; then
+    echo -e "${GREEN}✓ HealthNHabits directory already exists${NC}"
 else
     echo -e "${YELLOW}📥 Step 6: Cloning repository...${NC}"
-    git clone https://github.com/furkantekkartal/HealthNHabbits.git HealthNHabbits
+    git clone https://github.com/furkantekkartal/HealthNHabits.git HealthNHabits
 fi
 
-cd HealthNHabbits
+cd HealthNHabits
 
 # 7. Create .env file from template
 if [ ! -f ".env" ]; then

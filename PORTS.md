@@ -10,7 +10,7 @@ Schema: `[Project#][Env][Service][0]`
 
 ---
 
-## 1. HealthNHabbits
+## 1. HealthNHabits
 
 | Environment | Service | Port | Internal Container Port | URL |
 |-------------|---------|------|-------------------------|-----|

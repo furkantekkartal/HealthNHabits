@@ -1,4 +1,4 @@
-# HealthNHabbits 🥗
+# HealthNHabits 🥗
 
 > A modern, AI-powered diet and activity tracker focusing on quick logging and habit formation.
 

@@ -1,15 +1,15 @@
 #!/bin/bash
-# HealthNHabbits Deployment Script
+# HealthNHabits Deployment Script
 # Run this on the Oracle VM to deploy/update the application
 
 set -e  # Exit on any error
 
-echo "🚀 Starting HealthNHabbits deployment..."
+echo "🚀 Starting HealthNHabits deployment..."
 echo "📅 $(date)"
 echo ""
 
 # Navigate to app directory
-cd ~/apps/HealthNHabbits
+cd ~/apps/HealthNHabits
 
 # Pull latest changes
 echo "📥 Pulling latest code..."
@@ -39,7 +39,7 @@ docker-compose -f docker-compose.prod.yml ps
 # Show logs (last 20 lines)
 echo ""
 echo "📋 Recent Backend Logs:"
-docker logs healthnhabbits-backend --tail 20
+docker logs healthnhabits-backend --tail 20
 
 # Clean up old images
 echo ""

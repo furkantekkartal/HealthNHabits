@@ -1,6 +1,6 @@
-# 🚀 Oracle Cloud VM Setup Guide - HealthNHabbits
+# 🚀 Oracle Cloud VM Setup Guide - HealthNHabits
 
-This guide walks you through deploying **HealthNHabbits** to your Oracle Cloud Always Free VM.
+This guide walks you through deploying **HealthNHabits** to your Oracle Cloud Always Free VM.
 
 ---
 
@@ -10,7 +10,7 @@ Before starting, ensure you have:
 - [x] Oracle Cloud VM running (Ubuntu 24.04)
 - [x] SSH access to VM (PuTTY with your .key file)
 - [x] VM Public IP address: `152.67.97.67`
-- [x] GitHub repository URL: `https://github.com/furkantekkartal/HealthNHabbits`
+- [x] GitHub repository URL: `https://github.com/furkantekkartal/HealthNHabits`
 - [x] Domain address: `furkantekkartal.duckdns.org`
 
 ---
@@ -29,7 +29,7 @@ Using PuTTY:
 
 ```bash
 # Download and run setup script directly from master branch
-curl -sSL https://raw.githubusercontent.com/furkantekkartal/HealthNHabbits/master/scripts/initial-setup.sh | bash
+curl -sSL https://raw.githubusercontent.com/furkantekkartal/HealthNHabits/master/scripts/initial-setup.sh | bash
 ```
 
 ### Step 1.3: Configure Oracle VCN Firewall
@@ -52,12 +52,12 @@ mkdir -p ~/apps
 cd ~/apps
 
 # If cloning for the first time:
-git clone https://github.com/furkantekkartal/HealthNHabbits.git HealthNHabbits
-cd HealthNHabbits
+git clone https://github.com/furkantekkartal/HealthNHabits.git HealthNHabits
+cd HealthNHabits
 
 # If updating existing repo (fixing name):
-mv HealtNHabbits HealthNHabbits 2>/dev/null || true
-cd HealthNHabbits
+mv HealthNHabbits HealthNHabits 2>/dev/null || true
+cd HealthNHabits
 git pull origin master
 ```
 
@@ -66,7 +66,7 @@ git pull origin master
 ```bash
 nano .env
 ```
-Ensure your `.env` is set up with `POSTGRES_USER`, `POSTGRES_PASSWORD`, etc.
+Ensure your `.env` is set up with `POSTGRES_USER=healthnhabits`, `POSTGRES_DB=healthnhabits` etc.
 
 ### Step 1.6: Configure Nginx
 

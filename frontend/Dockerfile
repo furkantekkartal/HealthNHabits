@@ -1,4 +1,4 @@
-# HealthNHabbits Frontend Dockerfile
+# HealthNHabits Frontend Dockerfile
 # Multi-stage build: Vite build + Nginx serve
 
 # Stage 1: Build

@@ -7,7 +7,7 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
-    container_name: healthnhabbits-db
+    container_name: healthnhabits-db
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -21,14 +21,14 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - healthnhabbits-network
+      - healthnhabits-network
     # Don't expose postgres port in production
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: healthnhabbits-backend
+    container_name: healthnhabits-backend
     restart: always
     environment:
       NODE_ENV: production
@@ -49,7 +49,7 @@ services:
     volumes:
       - backend_uploads:/app/uploads
     networks:
-      - healthnhabbits-network
+      - healthnhabits-network
     depends_on:
       postgres:
         condition: service_healthy
@@ -61,17 +61,17 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: /api
-    container_name: healthnhabbits-frontend
+    container_name: healthnhabits-frontend
     restart: always
     networks:
-      - healthnhabbits-network
+      - healthnhabits-network
     depends_on:
       - backend
 
   # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
-    container_name: healthnhabbits-nginx
+    container_name: healthnhabits-nginx
     restart: always
     ports:
       - "80:80"
@@ -86,21 +86,21 @@ services:
       - frontend
       - backend
     networks:
-      - healthnhabbits-network
+      - healthnhabits-network
 
   # Certbot for SSL certificates (optional - not needed if using Cloudflare proxy)
   certbot:
     image: certbot/certbot
-    container_name: healthnhabbits-certbot
+    container_name: healthnhabits-certbot
     volumes:
       - certbot_certs:/etc/letsencrypt
       - certbot_www:/var/www/certbot
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
     networks:
-      - healthnhabbits-network
+      - healthnhabits-network
 
 networks:
-  healthnhabbits-network:
+  healthnhabits-network:
     driver: bridge
 
 volumes:

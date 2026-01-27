@@ -108,7 +108,7 @@
 
 ## 📌 Important Notes
 
-- ✅ **Production URL**: `https://health.furkantekartal.com` (configured via Cloudflare)
+- ✅ **Production URL**: `https://furkantekkartal.duckdns.org` (configured via Cloudflare)
 - ✅ **Infrastructure**: Oracle Always Free VM + Docker Compose
 - ✅ **Deployment**: Automated via GitHub Actions
 - ✅ **Database**: PostgreSQL (Dockerized)
