@@ -48,17 +48,7 @@ Add these **Ingress Rules** in [Oracle Cloud Console](https://cloud.oracle.com) 
 
 ---
 
-## Part 4: Run Initial Setup Script
-
-```bash
-curl -sSL https://raw.githubusercontent.com/furkantekkartal/HealthNHabits/master/scripts/initial-setup.sh | bash
-```
-
-After this script completes, **log out and log back in** for Docker permissions to take effect.
-
----
-
-## Part 5: Cleanup Previous Installation (Optional)
+## Part 4: Cleanup Previous Installation (Optional)
 
 > **Skip this step if this is your first time setting up HealthNHabits.**
 
@@ -77,21 +67,27 @@ docker images | grep healthnhabits | awk '{print $3}' | xargs -r docker rmi -f
 
 ---
 
-## Part 6: Clone Repository
+## Part 5: Run Initial Setup Script
+
+This script automatically:
+- Updates system packages
+- Installs Docker and Git
+- Configures iptables firewall
+- Clones the repository to `~/apps/HealthNHabits`
+- Creates `.env` file from template
 
 ```bash
-mkdir -p ~/apps
-cd ~/apps
-git clone https://github.com/furkantekkartal/HealthNHabits.git HealthNHabits
-cd HealthNHabits
+curl -sSL https://raw.githubusercontent.com/furkantekkartal/HealthNHabits/master/scripts/initial-setup.sh | bash
 ```
+
+After this script completes, **log out and log back in** for Docker permissions to take effect.
 
 ---
 
-## Part 7: Configure Environment Variables
+## Part 6: Configure Environment Variables
 
 ```bash
-cp .env.production.example .env
+cd ~/apps/HealthNHabits
 nano .env
 ```
 
@@ -106,7 +102,7 @@ GEMINI_API_KEY=your_gemini_api_key
 
 ---
 
-## Part 8: Configure Nginx
+## Part 7: Configure Nginx
 
 ```bash
 nano nginx/conf.d/default.conf
@@ -119,7 +115,7 @@ server_name furkantekkartal.duckdns.org;
 
 ---
 
-## Part 9: Start Containers
+## Part 8: Start Containers
 
 ### Option A: Production Only (Recommended)
 
@@ -173,7 +169,7 @@ docker-compose -f docker-compose.yml up -d --build
 
 ---
 
-## Part 10: Verify Installation
+## Part 9: Verify Installation
 
 Check running containers:
 ```bash

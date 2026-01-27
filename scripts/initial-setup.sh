@@ -1,10 +1,10 @@
 #!/bin/bash
-# HealthNHabbits - Initial Oracle VM Setup Script
+# HealthNHabits - Initial Oracle VM Setup Script
 # Run this ONCE on a fresh Oracle VM to set up everything
 
 set -e
 
-echo "🚀 HealthNHabbits Oracle VM Initial Setup"
+echo "🚀 HealthNHabits Oracle VM Initial Setup"
 echo "==========================================="
 echo ""
 
@@ -41,8 +41,12 @@ sudo usermod -aG docker $USER
 echo -e "${YELLOW}🔥 Step 4: Configuring firewall...${NC}"
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 1110 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 1120 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 1210 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 1220 -j ACCEPT
 
-# Ensure persistence tools are installed (sometimes removed by ufw)
+# Ensure persistence tools are installed
 sudo apt install -y iptables-persistent
 sudo netfilter-persistent save
 
@@ -81,15 +85,12 @@ echo ""
 echo "Next steps:"
 echo "1. Log out and log back in (for docker group to take effect)"
 echo "2. Edit the .env file with your credentials:"
-echo "   cd ~/apps/HealthNHabbits && nano .env"
+echo "   cd ~/apps/HealthNHabits && nano .env"
 echo ""
-echo "3. Configure Oracle VCN Security List:"
-echo "   - Allow ingress TCP port 80 from 0.0.0.0/0"
-echo "   - Allow ingress TCP port 443 from 0.0.0.0/0"
+echo "3. Configure Nginx domain:"
+echo "   nano ~/apps/HealthNHabits/nginx/conf.d/default.conf"
 echo ""
 echo "4. Start the application:"
-echo "   cd ~/apps/HealthNHabbits"
-echo "   docker-compose -f docker-compose.prod.yml up -d"
-echo ""
-echo "5. Set up your domain DNS in Cloudflare"
+echo "   cd ~/apps/HealthNHabits"
+echo "   docker-compose -f docker-compose.prod.yml up -d --build"
 echo ""
