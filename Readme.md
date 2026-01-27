@@ -1,6 +1,10 @@
-# HealtNHabbits 🥗📊
+# HealthNHabbits 🥗
 
-A **mobile-first, AI-powered health and habit tracking application** built for real daily use. Track your nutrition, hydration, weight, and activity with an intuitive interface that prioritizes speed and simplicity.
+> A modern, AI-powered diet and activity tracker focusing on quick logging and habit formation.
+
+**[🚀 Deployment Guide for Oracle Cloud](ORACLE_VM_SETUP.md)**
+
+---
 
 ![React](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-7.2-646CFF?logo=vite&logoColor=white)

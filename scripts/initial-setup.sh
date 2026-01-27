@@ -54,11 +54,11 @@ mkdir -p ~/apps
 cd ~/apps
 
 # 6. Clone repository (if not already cloned)
-if [ ! -d "HealthNHabbits" ]; then
-    echo -e "${YELLOW}📥 Step 6: Cloning repository...${NC}"
-    git clone https://github.com/furkantekkartal/HealtNHabbits.git HealthNHabbits
+if [ -d "HealthNHabbits" ]; then
+    echo -e "${GREEN}✓ HealthNHabbits directory already exists${NC}"
 else
-    echo -e "${GREEN}✓ Repository already exists${NC}"
+    echo -e "${YELLOW}📥 Step 6: Cloning repository...${NC}"
+    git clone https://github.com/furkantekkartal/HealthNHabbits.git HealthNHabbits
 fi
 
 cd HealthNHabbits
