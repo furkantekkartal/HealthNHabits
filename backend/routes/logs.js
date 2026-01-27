@@ -1,25 +1,51 @@
 const express = require('express');
 const router = express.Router();
-const DailyLog = require('../models/DailyLog');
-const Product = require('../models/Product');
-const UserProfile = require('../models/UserProfile');
+const { DailyLog, DailyLogEntry, Product, UserProfile } = require('../models');
 const auth = require('../middleware/auth');
 
 // All log routes require authentication
 router.use(auth);
 
-// Helper to get or create log for a date
-const getOrCreateLog = async (userId, date) => {
-    const targetDate = new Date(date);
-    targetDate.setHours(0, 0, 0, 0);
+// Helper to get log with entries
+const getLogWithEntries = async (log) => {
+    if (!log) return null;
 
-    // Use findOneAndUpdate with upsert to prevent race conditions
-    const log = await DailyLog.findOneAndUpdate(
-        { userId, date: targetDate },
-        {
-            $setOnInsert: {
-                userId,
-                date: targetDate,
+    const entries = await DailyLogEntry.findAll({
+        where: { dailyLogId: log.id },
+        order: [['time', 'DESC']]
+    });
+
+    return log.toAPIFormat(entries);
+};
+
+// Get today's log
+router.get('/today', async (req, res) => {
+    try {
+        const log = await DailyLog.getOrCreateToday(req.user.userId);
+        const result = await getLogWithEntries(log);
+        res.json(result);
+    } catch (error) {
+        console.error('Get today log error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get log for specific date
+router.get('/date/:date', async (req, res) => {
+    try {
+        const date = new Date(req.params.date);
+        const dateString = date.toISOString().split('T')[0];
+
+        const log = await DailyLog.findOne({
+            where: {
+                userId: req.user.userId,
+                date: dateString
+            }
+        });
+
+        if (!log) {
+            return res.json({
+                date: dateString,
                 entries: [],
                 summary: {
                     caloriesEaten: 0,
@@ -32,34 +58,13 @@ const getOrCreateLog = async (userId, date) => {
                     fat: 0,
                     fiber: 0
                 }
-            }
-        },
-        { upsert: true, new: true }
-    );
-    return log;
-};
-
-// Get today's log
-router.get('/today', async (req, res) => {
-    try {
-        const log = await DailyLog.getOrCreateToday(req.user.userId);
-        res.json(log);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Get log for specific date
-router.get('/date/:date', async (req, res) => {
-    try {
-        const date = new Date(req.params.date);
-        date.setHours(0, 0, 0, 0);
-        const log = await DailyLog.findOne({ userId: req.user.userId, date });
-        if (!log) {
-            return res.json({ date, entries: [], summary: {} });
+            });
         }
-        res.json(log);
+
+        const result = await getLogWithEntries(log);
+        res.json(result);
     } catch (error) {
+        console.error('Get date log error:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -71,25 +76,37 @@ router.post('/food', async (req, res) => {
         const userId = req.user.userId;
 
         const log = date
-            ? await getOrCreateLog(userId, date)
+            ? await DailyLog.getOrCreateForDate(userId, date)
             : await DailyLog.getOrCreateToday(userId);
 
-        log.entries.push({
-            type: 'food',
+        await DailyLogEntry.create({
+            dailyLogId: log.id,
+            entryType: 'food',
             time: new Date(),
-            data: { productId, name, calories, protein, carbs, fat, fiber: fiber || 0, portion, unit, mealType: mealType || 'other' }
+            productId: productId || null,
+            name,
+            calories,
+            protein,
+            carbs,
+            fat,
+            fiber: fiber || 0,
+            portion,
+            unit,
+            mealType: mealType || 'other'
         });
 
-        log.recalculateSummary();
+        await log.recalculateSummary();
         await log.save();
 
         // Increment product usage if productId provided
         if (productId) {
-            await Product.findByIdAndUpdate(productId, { $inc: { usageCount: 1 } });
+            await Product.increment('usageCount', { where: { id: productId } });
         }
 
-        res.json(log);
+        const result = await getLogWithEntries(log);
+        res.json(result);
     } catch (error) {
+        console.error('Add food error:', error);
         res.status(400).json({ error: error.message });
     }
 });
@@ -101,19 +118,23 @@ router.post('/water', async (req, res) => {
         const userId = req.user.userId;
 
         const log = date
-            ? await getOrCreateLog(userId, date)
+            ? await DailyLog.getOrCreateForDate(userId, date)
             : await DailyLog.getOrCreateToday(userId);
 
-        log.entries.push({
-            type: 'water',
+        await DailyLogEntry.create({
+            dailyLogId: log.id,
+            entryType: 'water',
             time: new Date(),
-            data: { amount }
+            amount
         });
 
-        log.recalculateSummary();
+        await log.recalculateSummary();
         await log.save();
-        res.json(log);
+
+        const result = await getLogWithEntries(log);
+        res.json(result);
     } catch (error) {
+        console.error('Add water error:', error);
         res.status(400).json({ error: error.message });
     }
 });
@@ -126,9 +147,8 @@ router.post('/water/remove', async (req, res) => {
 
         let log;
         if (date) {
-            const targetDate = new Date(date);
-            targetDate.setHours(0, 0, 0, 0);
-            log = await DailyLog.findOne({ userId, date: targetDate });
+            const dateString = new Date(date).toISOString().split('T')[0];
+            log = await DailyLog.findOne({ where: { userId, date: dateString } });
         } else {
             log = await DailyLog.getOrCreateToday(userId);
         }
@@ -137,19 +157,20 @@ router.post('/water/remove', async (req, res) => {
             return res.status(404).json({ error: 'No log found for this date' });
         }
 
-        log.entries.push({
-            type: 'water',
+        await DailyLogEntry.create({
+            dailyLogId: log.id,
+            entryType: 'water',
             time: new Date(),
-            data: { amount: -Math.abs(amount) }
+            amount: -Math.abs(amount)
         });
 
-        log.recalculateSummary();
-        if (log.summary.waterIntake < 0) {
-            log.summary.waterIntake = 0;
-        }
+        await log.recalculateSummary();
         await log.save();
-        res.json(log);
+
+        const result = await getLogWithEntries(log);
+        res.json(result);
     } catch (error) {
+        console.error('Remove water error:', error);
         res.status(400).json({ error: error.message });
     }
 });
@@ -161,17 +182,17 @@ router.post('/steps', async (req, res) => {
         const userId = req.user.userId;
 
         const log = date
-            ? await getOrCreateLog(userId, date)
+            ? await DailyLog.getOrCreateForDate(userId, date)
             : await DailyLog.getOrCreateToday(userId);
 
         // Calculate calories burned based on user profile
-        const profile = await UserProfile.findOne({ userId });
+        const profile = await UserProfile.findOne({ where: { userId } });
         let caloriesBurned = Math.round(steps * 0.04);
 
-        if (profile?.weight?.value) {
-            const weightKg = profile.weight.unit === 'kg'
-                ? profile.weight.value
-                : profile.weight.value * 0.453592;
+        if (profile?.weightValue) {
+            const weightKg = profile.weightUnit === 'kg'
+                ? parseFloat(profile.weightValue)
+                : parseFloat(profile.weightValue) * 0.453592;
             caloriesBurned = Math.round(steps * 0.04 * (weightKg / 70));
         }
 
@@ -179,18 +200,29 @@ router.post('/steps', async (req, res) => {
         const distance = (steps * strideLength / 100 / 1000).toFixed(2);
 
         // Remove existing steps entries
-        log.entries = log.entries.filter(e => e.type !== 'steps');
-
-        log.entries.push({
-            type: 'steps',
-            time: new Date(),
-            data: { steps, distance: parseFloat(distance), caloriesBurned }
+        await DailyLogEntry.destroy({
+            where: {
+                dailyLogId: log.id,
+                entryType: 'steps'
+            }
         });
 
-        log.recalculateSummary();
+        await DailyLogEntry.create({
+            dailyLogId: log.id,
+            entryType: 'steps',
+            time: new Date(),
+            steps,
+            distance: parseFloat(distance),
+            caloriesBurned
+        });
+
+        await log.recalculateSummary();
         await log.save();
-        res.json(log);
+
+        const result = await getLogWithEntries(log);
+        res.json(result);
     } catch (error) {
+        console.error('Add steps error:', error);
         res.status(400).json({ error: error.message });
     }
 });
@@ -202,29 +234,41 @@ router.post('/weight', async (req, res) => {
         const userId = req.user.userId;
 
         const log = date
-            ? await getOrCreateLog(userId, date)
+            ? await DailyLog.getOrCreateForDate(userId, date)
             : await DailyLog.getOrCreateToday(userId);
 
         // Remove existing weight entries
-        log.entries = log.entries.filter(e => e.type !== 'weight');
-
-        log.entries.push({
-            type: 'weight',
-            time: new Date(),
-            data: { weight, weightUnit: weightUnit || 'kg' }
+        await DailyLogEntry.destroy({
+            where: {
+                dailyLogId: log.id,
+                entryType: 'weight'
+            }
         });
 
-        log.recalculateSummary();
+        await DailyLogEntry.create({
+            dailyLogId: log.id,
+            entryType: 'weight',
+            time: new Date(),
+            weight,
+            weightUnit: weightUnit || 'kg'
+        });
+
+        await log.recalculateSummary();
         await log.save();
 
         // Also update user's profile weight
-        await UserProfile.findOneAndUpdate({ userId }, {
-            'weight.value': weight,
-            'weight.unit': weightUnit || 'kg'
-        });
+        await UserProfile.update(
+            {
+                weightValue: weight,
+                weightUnit: weightUnit || 'kg'
+            },
+            { where: { userId } }
+        );
 
-        res.json(log);
+        const result = await getLogWithEntries(log);
+        res.json(result);
     } catch (error) {
+        console.error('Add weight error:', error);
         res.status(400).json({ error: error.message });
     }
 });
@@ -235,25 +279,26 @@ router.get('/weight/history', async (req, res) => {
         const limit = parseInt(req.query.days) || 7;
         const userId = req.user.userId;
 
-        const logs = await DailyLog.find({
-            userId,
-            'entries.type': 'weight'
-        }).sort({ date: -1 });
+        const entries = await DailyLogEntry.findAll({
+            where: { entryType: 'weight' },
+            include: [{
+                model: DailyLog,
+                as: 'dailyLog',
+                where: { userId },
+                attributes: ['date']
+            }],
+            order: [[{ model: DailyLog, as: 'dailyLog' }, 'date', 'DESC']],
+            limit
+        });
 
-        const history = [];
-        for (const log of logs) {
-            const weightEntry = log.entries.find(e => e.type === 'weight');
-            if (weightEntry && weightEntry.data?.weight) {
-                history.push({
-                    date: log.date.toISOString().split('T')[0],
-                    weight: weightEntry.data.weight
-                });
-            }
-            if (history.length >= limit) break;
-        }
+        const history = entries.map(entry => ({
+            date: entry.dailyLog.date,
+            weight: parseFloat(entry.weight)
+        }));
 
         res.json(history.reverse());
     } catch (error) {
+        console.error('Get weight history error:', error);
         res.status(500).json({ error: error.message });
     }
 });
@@ -263,12 +308,11 @@ router.delete('/entry/:entryId', async (req, res) => {
     try {
         const { date } = req.query;
         const userId = req.user.userId;
-        let log;
 
+        let log;
         if (date) {
-            const targetDate = new Date(date);
-            targetDate.setHours(0, 0, 0, 0);
-            log = await DailyLog.findOne({ userId, date: targetDate });
+            const dateString = new Date(date).toISOString().split('T')[0];
+            log = await DailyLog.findOne({ where: { userId, date: dateString } });
         } else {
             log = await DailyLog.getOrCreateToday(userId);
         }
@@ -277,11 +321,25 @@ router.delete('/entry/:entryId', async (req, res) => {
             return res.status(404).json({ error: 'Log not found' });
         }
 
-        log.entries = log.entries.filter(e => e._id.toString() !== req.params.entryId);
-        log.recalculateSummary();
+        const entry = await DailyLogEntry.findOne({
+            where: {
+                id: req.params.entryId,
+                dailyLogId: log.id
+            }
+        });
+
+        if (!entry) {
+            return res.status(404).json({ error: 'Entry not found' });
+        }
+
+        await entry.destroy();
+        await log.recalculateSummary();
         await log.save();
-        res.json(log);
+
+        const result = await getLogWithEntries(log);
+        res.json(result);
     } catch (error) {
+        console.error('Delete entry error:', error);
         res.status(400).json({ error: error.message });
     }
 });
@@ -291,12 +349,11 @@ router.put('/entry/:entryId', async (req, res) => {
     try {
         const { date, data } = req.body;
         const userId = req.user.userId;
-        let log;
 
+        let log;
         if (date) {
-            const targetDate = new Date(date);
-            targetDate.setHours(0, 0, 0, 0);
-            log = await DailyLog.findOne({ userId, date: targetDate });
+            const dateString = new Date(date).toISOString().split('T')[0];
+            log = await DailyLog.findOne({ where: { userId, date: dateString } });
         } else {
             log = await DailyLog.getOrCreateToday(userId);
         }
@@ -305,18 +362,43 @@ router.put('/entry/:entryId', async (req, res) => {
             return res.status(404).json({ error: 'Log not found' });
         }
 
-        const entry = log.entries.id(req.params.entryId);
+        const entry = await DailyLogEntry.findOne({
+            where: {
+                id: req.params.entryId,
+                dailyLogId: log.id
+            }
+        });
+
         if (!entry) {
             return res.status(404).json({ error: 'Entry not found' });
         }
 
-        Object.assign(entry.data, data);
-        entry.time = new Date();
+        // Update entry with new data
+        const updateData = { time: new Date() };
 
-        log.recalculateSummary();
+        // Map data object fields to entry fields
+        if (data.name !== undefined) updateData.name = data.name;
+        if (data.calories !== undefined) updateData.calories = data.calories;
+        if (data.protein !== undefined) updateData.protein = data.protein;
+        if (data.carbs !== undefined) updateData.carbs = data.carbs;
+        if (data.fat !== undefined) updateData.fat = data.fat;
+        if (data.fiber !== undefined) updateData.fiber = data.fiber;
+        if (data.portion !== undefined) updateData.portion = data.portion;
+        if (data.unit !== undefined) updateData.unit = data.unit;
+        if (data.amount !== undefined) updateData.amount = data.amount;
+        if (data.steps !== undefined) updateData.steps = data.steps;
+        if (data.weight !== undefined) updateData.weight = data.weight;
+        if (data.mealType !== undefined) updateData.mealType = data.mealType;
+
+        await entry.update(updateData);
+
+        await log.recalculateSummary();
         await log.save();
-        res.json(log);
+
+        const result = await getLogWithEntries(log);
+        res.json(result);
     } catch (error) {
+        console.error('Update entry error:', error);
         res.status(400).json({ error: error.message });
     }
 });

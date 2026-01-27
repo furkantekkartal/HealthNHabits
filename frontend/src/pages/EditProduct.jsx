@@ -17,6 +17,10 @@ export default function EditProduct() {
     const editFoodEntry = location.state?.editFoodEntry;
     const isEditingEntry = !!editFoodEntry;
 
+    // Check if we're editing a detected item from FoodAnalysis
+    const editDetectedItem = location.state?.editDetectedItem;
+    const isEditingDetectedItem = !!editDetectedItem;
+
     // Check if coming from analyze page - use both location.state and sessionStorage
     const [returnTo, setReturnTo] = useState(null);
 
@@ -56,6 +60,16 @@ export default function EditProduct() {
         fiber: 0,
     });
 
+    // Base values for portion scaling
+    const [baseValues, setBaseValues] = useState({
+        portion: 100,
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        fiber: 0,
+    });
+
     useEffect(() => {
         // If editing a food entry from ActivityLog
         if (editFoodEntry) {
@@ -70,6 +84,41 @@ export default function EditProduct() {
                 carbs: editFoodEntry.data?.carbs || 0,
                 fat: editFoodEntry.data?.fat || 0,
                 fiber: editFoodEntry.data?.fiber || 0,
+            });
+            // Set base values for portion scaling
+            setBaseValues({
+                portion: editFoodEntry.data?.portion || 100,
+                calories: editFoodEntry.data?.calories || 0,
+                protein: editFoodEntry.data?.protein || 0,
+                carbs: editFoodEntry.data?.carbs || 0,
+                fat: editFoodEntry.data?.fat || 0,
+                fiber: editFoodEntry.data?.fiber || 0,
+            });
+            return;
+        }
+
+        // If editing a detected item from FoodAnalysis
+        if (editDetectedItem) {
+            setFormData({
+                name: editDetectedItem.name || '',
+                emoji: '🍽️',
+                category: 'Meal',
+                servingValue: editDetectedItem.portion || 100,
+                servingUnit: editDetectedItem.unit || 'g',
+                calories: editDetectedItem.calories || 0,
+                protein: editDetectedItem.protein || 0,
+                carbs: editDetectedItem.carbs || 0,
+                fat: editDetectedItem.fat || 0,
+                fiber: editDetectedItem.fiber || 0,
+            });
+            // Set base values for portion scaling
+            setBaseValues({
+                portion: editDetectedItem.basePortion || editDetectedItem.portion || 100,
+                calories: editDetectedItem.baseCalories || editDetectedItem.calories || 0,
+                protein: editDetectedItem.baseProtein || editDetectedItem.protein || 0,
+                carbs: editDetectedItem.baseCarbs || editDetectedItem.carbs || 0,
+                fat: editDetectedItem.baseFat || editDetectedItem.fat || 0,
+                fiber: editDetectedItem.baseFiber || editDetectedItem.fiber || 0,
             });
             return;
         }
@@ -95,6 +144,15 @@ export default function EditProduct() {
                     if (p.imageUrl) {
                         setImagePreview(p.imageUrl);
                     }
+                    // Set base values for portion scaling
+                    setBaseValues({
+                        portion: p.servingSize?.value || 100,
+                        calories: p.nutrition?.calories || 0,
+                        protein: p.nutrition?.protein || 0,
+                        carbs: p.nutrition?.carbs || 0,
+                        fat: p.nutrition?.fat || 0,
+                        fiber: p.nutrition?.fiber || 0,
+                    });
                 } catch (err) {
                     console.error('Error loading product:', err);
                     setToast({ message: 'Failed to load product', type: 'error' });
@@ -102,7 +160,7 @@ export default function EditProduct() {
             };
             fetchProduct();
         }
-    }, [id, editFoodEntry]);
+    }, [id, editFoodEntry, editDetectedItem]);
 
     const handleImageSelect = (e) => {
         const file = e.target.files[0];
@@ -110,6 +168,21 @@ export default function EditProduct() {
             setImageFile(file);
             setImagePreview(URL.createObjectURL(file));
         }
+    };
+
+    // Handle portion change with macro recalculation
+    const handlePortionChange = (newPortion) => {
+        if (baseValues.portion === 0) return;
+        const ratio = newPortion / baseValues.portion;
+        setFormData(prev => ({
+            ...prev,
+            servingValue: newPortion,
+            calories: Math.round(baseValues.calories * ratio),
+            protein: Math.round(baseValues.protein * ratio),
+            carbs: Math.round(baseValues.carbs * ratio),
+            fat: Math.round(baseValues.fat * ratio),
+            fiber: Math.round(baseValues.fiber * ratio),
+        }));
     };
 
     const handleAutoFill = async () => {
@@ -225,11 +298,65 @@ export default function EditProduct() {
                 }
             };
 
+            // Convert imageFile to base64 and add to productData
+            if (imageFile) {
+                const reader = new FileReader();
+                const base64Promise = new Promise((resolve) => {
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(imageFile);
+                });
+                productData.imageUrl = await base64Promise;
+            } else if (imagePreview && !imagePreview.startsWith('blob:')) {
+                // Keep existing image if it's a server URL
+                productData.imageUrl = imagePreview;
+            }
+
             if (isNew) {
+                // If editing a detected item, replace it instead of creating product
+                if (isEditingDetectedItem && returnTo === '/analyze') {
+                    const existingState = sessionStorage.getItem('foodAnalysisState');
+                    if (existingState) {
+                        try {
+                            const parsed = JSON.parse(existingState);
+                            const editingItemId = parsed.editingItemId;
+                            // Update the existing item in the list
+                            const updatedItem = {
+                                id: editDetectedItem.id, // Keep original ID
+                                name: formData.name,
+                                calories: formData.calories,
+                                protein: formData.protein,
+                                carbs: formData.carbs,
+                                fat: formData.fat,
+                                fiber: formData.fiber,
+                                portion: formData.servingValue,
+                                basePortion: formData.servingValue,
+                                baseCalories: formData.calories,
+                                baseProtein: formData.protein,
+                                baseCarbs: formData.carbs,
+                                baseFat: formData.fat,
+                                baseFiber: formData.fiber,
+                                unit: formData.servingUnit
+                            };
+                            // Replace the item with matching ID
+                            parsed.result.items = parsed.result.items.map(item =>
+                                item.id === editDetectedItem.id ? updatedItem : item
+                            );
+                            delete parsed.editingItemId; // Clean up
+                            sessionStorage.setItem('foodAnalysisState', JSON.stringify(parsed));
+                            setToast({ message: 'Item updated!', type: 'success' });
+                        } catch (e) {
+                            console.error('Error updating state:', e);
+                        }
+                    }
+                    sessionStorage.removeItem('editProductReturnTo');
+                    setTimeout(() => navigate('/analyze'), 1000);
+                    return;
+                }
+
                 await createProduct(productData);
                 setToast({ message: 'Product created!', type: 'success' });
 
-                // If coming from analyze page, add product to detected items
+                // If coming from analyze page (adding new item), add product to detected items
                 if (returnTo === '/analyze') {
                     const existingState = sessionStorage.getItem('foodAnalysisState');
                     if (existingState) {
@@ -405,7 +532,7 @@ export default function EditProduct() {
                             <input
                                 type="number"
                                 value={formData.servingValue}
-                                onChange={(e) => setFormData({ ...formData, servingValue: parseInt(e.target.value) || 0 })}
+                                onChange={(e) => handlePortionChange(parseInt(e.target.value) || 0)}
                                 className="w-full bg-white border border-gray-200 rounded-xl px-4 h-12 text-base focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                             />
                         </div>
@@ -429,23 +556,6 @@ export default function EditProduct() {
                             <h3 className="text-lg font-bold text-gray-900">
                                 Macros <span className="text-sm font-normal text-gray-500 ml-1">(per serving)</span>
                             </h3>
-                            <button
-                                onClick={handleAutoFill}
-                                disabled={autoFilling || !imageFile}
-                                className="text-xs text-primary font-semibold hover:underline disabled:opacity-50 flex items-center gap-1"
-                            >
-                                {autoFilling ? (
-                                    <>
-                                        <span className="material-symbols-outlined text-sm animate-spin">sync</span>
-                                        Analyzing...
-                                    </>
-                                ) : (
-                                    <>
-                                        <span className="material-symbols-outlined text-sm">auto_awesome</span>
-                                        Auto-fill from image
-                                    </>
-                                )}
-                            </button>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">

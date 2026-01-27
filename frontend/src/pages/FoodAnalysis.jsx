@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { analyzeFood, addFoodEntry, createProduct, getProducts } from '../services/api';
 import { Toast } from '../components/ui/UIComponents';
+import { getMealTypeFromTime } from '../utils/getMealTypeFromTime';
 
 const MEAL_TYPES = [
     { id: 'breakfast', label: 'Breakfast', icon: 'egg_alt' },
@@ -20,7 +21,7 @@ export default function FoodAnalysis() {
     const [analyzing, setAnalyzing] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState(null);
-    const [selectedMealType, setSelectedMealType] = useState('lunch');
+    const [selectedMealType, setSelectedMealType] = useState(() => getMealTypeFromTime());
     const [toast, setToast] = useState(null);
     const [mealName, setMealName] = useState('');
 
@@ -29,6 +30,10 @@ export default function FoodAnalysis() {
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [searching, setSearching] = useState(false);
+
+    // Image Source Modal State
+    const [showImageSourceModal, setShowImageSourceModal] = useState(false);
+    const cameraInputRef = useRef(null);
 
     // Restore state from sessionStorage if coming back from catalog/new
     useEffect(() => {
@@ -117,7 +122,12 @@ export default function FoodAnalysis() {
                     baseFat: item.fat || 0,
                     baseFiber: item.fiber || 0
                 }));
-                setResult({ ...response.data, items: itemsWithBase });
+                // Store the server imageUrl for product creation (not the blob URL)
+                setResult({
+                    ...response.data,
+                    items: itemsWithBase,
+                    serverImageUrl: response.data.imageUrl // Save the server URL
+                });
                 // Set meal name from first item or combine names
                 if (response.data.items.length === 1) {
                     setMealName(response.data.items[0].name);
@@ -221,11 +231,12 @@ export default function FoodAnalysis() {
         setLoading(true);
         try {
             // Create combined meal for catalog (auto-add)
+            // Use the server imageUrl returned by AI (not blob URL which is session-local)
             const combinedProduct = {
                 name: mealName || 'Custom Meal',
                 emoji: '🍽️',
                 category: 'Meal',
-                imageUrl: imagePreview,
+                imageUrl: result.serverImageUrl || null, // Use server-stored image path
                 servingSize: { value: totals.portion, unit: 'g' },
                 nutrition: {
                     calories: totals.calories,
@@ -300,7 +311,7 @@ export default function FoodAnalysis() {
                 <div className="px-4 py-3">
                     {!imagePreview && !result ? (
                         <div
-                            onClick={() => fileInputRef.current?.click()}
+                            onClick={() => setShowImageSourceModal(true)}
                             className="w-full min-h-[180px] rounded-2xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all"
                         >
                             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
@@ -343,6 +354,13 @@ export default function FoodAnalysis() {
 
                 <input
                     ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                />
+                <input
+                    ref={cameraInputRef}
                     type="file"
                     accept="image/*"
                     capture="environment"
@@ -474,12 +492,36 @@ export default function FoodAnalysis() {
                                                     <p className="font-semibold text-sm truncate">{item.name}</p>
                                                     <p className="text-primary font-bold text-sm">{item.calories} kcal</p>
                                                 </div>
-                                                <button
-                                                    onClick={() => deleteItem(item.id)}
-                                                    className="text-gray-400 hover:text-red-500 transition-colors p-1"
-                                                >
-                                                    <span className="material-symbols-outlined text-[20px]">delete</span>
-                                                </button>
+                                                <div className="flex items-center gap-1">
+                                                    <button
+                                                        onClick={() => {
+                                                            // Save state and navigate to edit with item data
+                                                            const stateToSave = {
+                                                                result,
+                                                                mealName,
+                                                                selectedMealType,
+                                                                imagePreview,
+                                                                editingItemId: item.id // Track which item is being edited
+                                                            };
+                                                            sessionStorage.setItem('foodAnalysisState', JSON.stringify(stateToSave));
+                                                            navigate('/catalog/new', {
+                                                                state: {
+                                                                    returnTo: '/analyze',
+                                                                    editDetectedItem: item
+                                                                }
+                                                            });
+                                                        }}
+                                                        className="text-gray-400 hover:text-primary transition-colors p-1"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[20px]">edit</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => deleteItem(item.id)}
+                                                        className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[20px]">delete</span>
+                                                    </button>
+                                                </div>
                                             </div>
 
                                             {/* Macros Row */}
@@ -616,6 +658,55 @@ export default function FoodAnalysis() {
                                     <p>Type to search your catalog</p>
                                 </div>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Image Source Selection Modal */}
+            {showImageSourceModal && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center sm:items-center">
+                    <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-lg font-bold">Add Photo</h3>
+                            <button
+                                onClick={() => setShowImageSourceModal(false)}
+                                className="p-2 hover:bg-gray-100 rounded-full"
+                            >
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowImageSourceModal(false);
+                                    cameraInputRef.current?.click();
+                                }}
+                                className="flex items-center gap-4 p-4 bg-primary/10 rounded-2xl hover:bg-primary/20 transition-colors"
+                            >
+                                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-primary text-2xl">photo_camera</span>
+                                </div>
+                                <div className="text-left">
+                                    <p className="font-semibold">Take Photo</p>
+                                    <p className="text-sm text-gray-500">Use your camera to capture food</p>
+                                </div>
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowImageSourceModal(false);
+                                    fileInputRef.current?.click();
+                                }}
+                                className="flex items-center gap-4 p-4 bg-blue-50 rounded-2xl hover:bg-blue-100 transition-colors"
+                            >
+                                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-blue-600 text-2xl">photo_library</span>
+                                </div>
+                                <div className="text-left">
+                                    <p className="font-semibold">Upload Image</p>
+                                    <p className="text-sm text-gray-500">Choose from your photo library</p>
+                                </div>
+                            </button>
                         </div>
                     </div>
                 </div>

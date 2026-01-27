@@ -1,12 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-
-// Configure multer for memory storage
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB max
-});
+const path = require('path');
+const { uploadForAnalysis, saveBase64Image, analyzedImagesDir, getFileUrl } = require('../config/fileStorage');
+const auth = require('../middleware/auth');
 
 // Analyze food using OpenRouter (works with GPT-4 Vision, Claude, etc.)
 async function analyzeWithOpenRouter(imageBase64, mimeType) {
@@ -83,7 +79,7 @@ Rules:
 }
 
 // Analyze food image endpoint
-router.post('/analyze-food', upload.single('image'), async (req, res) => {
+router.post('/analyze-food', auth, uploadForAnalysis.single('image'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No image provided' });
@@ -97,6 +93,19 @@ router.post('/analyze-food', upload.single('image'), async (req, res) => {
         const imageBase64 = req.file.buffer.toString('base64');
         const mimeType = req.file.mimetype;
 
+        // Save the image locally for future reference
+        const userId = req.user?.userId || 'anonymous';
+        const timestamp = Date.now();
+        const ext = req.file.originalname ? path.extname(req.file.originalname) : '.jpg';
+        const filename = `${userId}_${timestamp}${ext}`;
+
+        let savedImagePath = null;
+        try {
+            savedImagePath = await saveBase64Image(imageBase64, analyzedImagesDir, filename);
+        } catch (saveError) {
+            console.warn('Could not save analyzed image locally:', saveError.message);
+            // Continue with analysis even if save fails
+        }
 
         let text = await analyzeWithOpenRouter(imageBase64, mimeType);
 
@@ -122,6 +131,10 @@ router.post('/analyze-food', upload.single('image'), async (req, res) => {
                 id: index + 1
             }));
         }
+
+        // Include the saved image path in the response
+        analysisResult.imagePath = savedImagePath;
+        analysisResult.imageUrl = savedImagePath ? getFileUrl(req, savedImagePath) : null;
 
         res.json(analysisResult);
 

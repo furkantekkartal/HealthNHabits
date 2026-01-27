@@ -20,10 +20,8 @@ function getApiBaseUrl() {
     const hostname = window.location.hostname; // e.g., "localhost" or "192.168.1.106"
     const port = window.location.port;
 
-    // Determine backend port based on frontend port
-    let backendPort = '5000'; // default
-    if (port === '3040') backendPort = '5040'; // Master
-    if (port === '3050') backendPort = '5050'; // Dev
+    // Backend always runs on port 5000 after PostgreSQL migration
+    const backendPort = '5000';
 
     return `http://${hostname}:${backendPort}/api`;
 }

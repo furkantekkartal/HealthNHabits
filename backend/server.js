@@ -10,8 +10,8 @@ if (nodeEnv === 'master') {
 require('dotenv').config({ path: path.join(__dirname, envFile) });
 
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
+const { syncDatabase, sequelize } = require('./models');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -41,12 +41,8 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 images
 
-// Connect to MongoDB
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/diet-tracker';
-
-mongoose.connect(MONGODB_URI)
-    .then(() => console.log('✅ Connected to MongoDB'))
-    .catch((err) => console.error('❌ MongoDB connection error:', err));
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 const authRoutes = require('./routes/auth');
@@ -64,12 +60,21 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/ai', aiRoutes);
 
 // Health check with database status
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+    let dbConnected = false;
+    try {
+        await sequelize.authenticate();
+        dbConnected = true;
+    } catch (error) {
+        dbConnected = false;
+    }
+
     res.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
         database: {
-            connected: mongoose.connection.readyState === 1
+            type: 'postgresql',
+            connected: dbConnected
         },
         environment: process.env.NODE_ENV || 'development'
     });
@@ -81,7 +86,23 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: err.message });
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+// Initialize database and start server
+const startServer = async () => {
+    try {
+        // Sync database (creates tables if they don't exist)
+        // Use { alter: true } in development to update tables
+        // Use { force: true } to drop and recreate (DANGER: loses data)
+        const syncOptions = nodeEnv === 'development' ? { alter: true } : {};
+        await syncDatabase(syncOptions);
+
+        // Start server
+        app.listen(PORT, () => {
+            console.log(`🚀 Server running on http://localhost:${PORT}`);
+        });
+    } catch (error) {
+        console.error('❌ Failed to start server:', error);
+        process.exit(1);
+    }
+};
+
+startServer();

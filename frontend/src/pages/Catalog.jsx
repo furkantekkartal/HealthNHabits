@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { getProducts, getMostUsedProducts, addFoodEntry, updateProduct, deleteProduct } from '../services/api';
 import { useDate } from '../context/DateContext';
 import { PageLoading, Toast } from '../components/ui/UIComponents';
+import { getMealTypeFromTime } from '../utils/getMealTypeFromTime';
 
 const MEAL_TYPES = [
     { id: 'breakfast', label: 'Breakfast', icon: 'egg_alt', color: 'bg-amber-100 text-amber-700 border-amber-300', iconColor: 'text-amber-500' },
@@ -29,7 +30,7 @@ export default function Catalog() {
     const [searchQuery, setSearchQuery] = useState('');
     const [mostUsed, setMostUsed] = useState([]);
     const [allProducts, setAllProducts] = useState([]);
-    const [selectedMealType, setSelectedMealType] = useState('lunch');
+    const [selectedMealType, setSelectedMealType] = useState(() => getMealTypeFromTime());
     const [toast, setToast] = useState(null);
     const [addingProduct, setAddingProduct] = useState(null);
     const [longPressItem, setLongPressItem] = useState(null);

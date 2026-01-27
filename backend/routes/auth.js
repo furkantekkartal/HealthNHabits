@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const { User, UserProfile } = require('../models');
 const auth = require('../middleware/auth');
 const { JWT_SECRET } = require('../middleware/auth');
+const { getFileUrl } = require('../config/fileStorage');
 
 // Register new user
 router.post('/register', async (req, res) => {
@@ -24,22 +25,22 @@ router.post('/register', async (req, res) => {
         }
 
         // Check if user exists
-        const existingUser = await User.findOne({ username: username.toLowerCase() });
+        const existingUser = await User.findOne({
+            where: { username: username.toLowerCase() }
+        });
         if (existingUser) {
             return res.status(400).json({ message: 'Username already taken' });
         }
 
         // Create user
-        const user = new User({
+        const user = await User.create({
             username: username.toLowerCase(),
             password
         });
 
-        await user.save();
-
         // Generate token
         const token = jwt.sign(
-            { userId: user._id, username: user.username },
+            { userId: user.id, username: user.username },
             JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -48,7 +49,7 @@ router.post('/register', async (req, res) => {
             message: 'User registered successfully',
             token,
             user: {
-                id: user._id,
+                id: user.id,
                 username: user.username
             }
         });
@@ -69,7 +70,9 @@ router.post('/login', async (req, res) => {
         }
 
         // Find user
-        const user = await User.findOne({ username: username.toLowerCase() });
+        const user = await User.findOne({
+            where: { username: username.toLowerCase() }
+        });
         if (!user) {
             return res.status(401).json({ message: 'Invalid username or password' });
         }
@@ -82,7 +85,7 @@ router.post('/login', async (req, res) => {
 
         // Generate token
         const token = jwt.sign(
-            { userId: user._id, username: user.username },
+            { userId: user.id, username: user.username },
             JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -91,9 +94,9 @@ router.post('/login', async (req, res) => {
             message: 'Login successful',
             token,
             user: {
-                id: user._id,
+                id: user.id,
                 username: user.username,
-                profilePictureUrl: user.profilePictureUrl
+                profilePictureUrl: getFileUrl(req, user.profilePicturePath)
             }
         });
     } catch (error) {
@@ -105,11 +108,17 @@ router.post('/login', async (req, res) => {
 // Get current user (protected)
 router.get('/me', auth, async (req, res) => {
     try {
-        const user = await User.findById(req.user.userId).select('-password');
+        const user = await User.findByPk(req.user.userId, {
+            attributes: { exclude: ['password'] }
+        });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        res.json(user);
+
+        const userData = user.toJSON();
+        userData.profilePictureUrl = getFileUrl(req, user.profilePicturePath);
+
+        res.json(userData);
     } catch (error) {
         console.error('Get me error:', error);
         res.status(500).json({ message: 'Server error' });
