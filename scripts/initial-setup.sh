@@ -41,12 +41,14 @@ echo -e "${YELLOW}🔥 Step 4: Configuring firewall...${NC}"
 # Standard HTTP/HTTPS
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
-# Dev ports
+# Dev ports (Backend, Frontend, Database)
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 1110 -j ACCEPT
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 1120 -j ACCEPT
-# Prod ports
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 1130 -j ACCEPT
+# Prod ports (Backend, Frontend, Database)
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 1210 -j ACCEPT
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 1220 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 1230 -j ACCEPT
 
 # Ensure persistence tools are installed
 sudo apt install -y iptables-persistent

@@ -72,7 +72,7 @@ docker images | grep healthnhabits | awk '{print $3}' | xargs -r docker rmi -f
 This script automatically:
 - Updates system packages
 - Installs Docker and Git
-- Configures iptables firewall
+- Configures iptables firewall (ports 80, 443, 1110, 1120, 1210, 1220)
 - Clones the repository to `~/apps/HealthNHabits`
 - Creates `.env` file from template
 
@@ -117,7 +117,7 @@ server_name furkantekkartal.duckdns.org;
 
 ## Part 8: Start Containers
 
-### Option A: Production Only (Recommended)
+### Production
 
 ```bash
 docker-compose -f docker-compose.prod.yml up -d --build
@@ -125,13 +125,11 @@ docker-compose -f docker-compose.prod.yml up -d --build
 
 | Access | URL |
 |--------|-----|
-| Main Site | `http://furkantekkartal.duckdns.org` |
+| Via Domain | `http://furkantekkartal.duckdns.org` |
 | Direct Frontend | `http://152.67.97.67:1220` |
 | Direct Backend | `http://152.67.97.67:1210` |
 
----
-
-### Option B: Development Only
+### Development
 
 ```bash
 docker-compose -f docker-compose.yml up -d --build
@@ -139,33 +137,31 @@ docker-compose -f docker-compose.yml up -d --build
 
 | Access | URL |
 |--------|-----|
-| Dev Frontend | `http://152.67.97.67:1120` |
-| Dev Backend | `http://152.67.97.67:1110` |
+| Via Domain | `http://furkantekkartal.duckdns.org:1120` |
+| Direct Frontend | `http://152.67.97.67:1120` |
+| Direct Backend | `http://152.67.97.67:1110` |
 
----
-
-### Option C: Both Environments (Side-by-Side)
+### Both Environments (Side-by-Side)
 
 Production and Development use different ports and container names, so they can run simultaneously.
 
 ```bash
-# Start Production
 docker-compose -f docker-compose.prod.yml up -d --build
-
-# Start Development
 docker-compose -f docker-compose.yml up -d --build
 ```
 
 | Environment | Frontend | Backend |
 |-------------|----------|---------|
 | Production | `http://furkantekkartal.duckdns.org` | `http://152.67.97.67:1210` |
-| Development | `http://152.67.97.67:1120` | `http://152.67.97.67:1110` |
+| Development | `http://furkantekkartal.duckdns.org:1120` | `http://152.67.97.67:1110` |
 
-> **Note**: The Always Free VM has ~1GB RAM. Running both may cause slowdowns. Stop whichever you're not using:
-> ```bash
-> docker-compose -f docker-compose.yml down      # Stop Dev
-> docker-compose -f docker-compose.prod.yml down # Stop Prod
-> ```
+> **Note**: The Always Free VM has ~1GB RAM. Running both may cause slowdowns.
+
+**Stop environments:**
+```bash
+docker-compose -f docker-compose.yml down      # Stop Dev
+docker-compose -f docker-compose.prod.yml down # Stop Prod
+```
 
 ---
 
@@ -176,12 +172,6 @@ Check running containers:
 docker ps
 ```
 
-You should see:
-- `healthnhabits-db`
-- `healthnhabits-backend`
-- `healthnhabits-frontend`
-- `healthnhabits-nginx`
-
 Test the health endpoint:
 ```bash
 curl http://localhost/api/health
@@ -191,12 +181,82 @@ curl http://localhost/api/health
 
 ## Updating the Application
 
-When you push new code to GitHub:
-
 ```bash
 cd ~/apps/HealthNHabits
 git pull origin master
 docker-compose -f docker-compose.prod.yml up -d --build
+```
+
+If running both environments, also rebuild dev:
+```bash
+docker-compose -f docker-compose.yml up -d --build
+```
+
+---
+
+## Sync Production Data to Development
+
+Clone all data from production to development database (users, passwords, uploads, etc.):
+
+```bash
+cd ~/apps/HealthNHabits
+bash scripts/clone-prod-to-dev.sh
+```
+
+**What this script does:**
+1. Exports production database via `pg_dump`
+2. Clears all tables in development database
+3. Imports data to development (passwords stay hashed, no re-hashing)
+4. Copies upload files from prod to dev
+
+> **Tip**: Run this after every deployment to keep dev data in sync with prod.
+
+---
+
+## Monitoring & Troubleshooting
+
+### Check Container Status
+```bash
+docker ps
+docker stats --no-stream
+```
+
+### Check Container Memory Usage
+```bash
+docker stats --no-stream --format "table {{.Name}}\t{{.MemUsage}}"
+```
+
+### View Container Logs
+```bash
+docker logs healthnhabits-backend --tail 50
+docker logs dev-healthnhabits-backend --tail 50
+```
+
+### Check System Resources
+```bash
+htop
+free -h
+```
+
+### Free Up RAM (Optional)
+
+The Oracle Free Tier VM has only ~1GB RAM. If running low:
+
+**Stop dev environment when not needed:**
+```bash
+docker-compose -f docker-compose.yml down
+```
+
+**Disable Snap (saves 50-100MB RAM):**
+Snap is Ubuntu's package manager - not needed for Docker servers.
+```bash
+sudo systemctl disable --now snapd
+sudo systemctl disable --now snapd.socket
+```
+
+**Clean up unused Docker resources:**
+```bash
+docker system prune -af
 ```
 
 ---
@@ -207,7 +267,7 @@ docker-compose -f docker-compose.prod.yml up -d --build
 |---------|----------|-----------|
 | Frontend | 1120 | 1220 (or 80) |
 | Backend | 1110 | 1210 |
-| PostgreSQL | 5433 | 5432 (internal) |
+| PostgreSQL | 1130 | 1230 |
 
 See [PORTS.md](PORTS.md) for the complete port registry.
 

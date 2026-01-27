@@ -1,4 +1,4 @@
-# HealthNHabbits Docker Compose - Production
+# HealthNHabits Docker Compose - Production
 # Run with: docker-compose -f docker-compose.prod.yml up -d
 
 version: '3.8'
@@ -22,7 +22,8 @@ services:
       retries: 5
     networks:
       - healthnhabits-network
-    # Don't expose postgres port in production
+    ports:
+      - "1230:5432" # Prod Database external access (optional)
 
   backend:
     build:
