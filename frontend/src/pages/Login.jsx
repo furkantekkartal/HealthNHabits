@@ -41,9 +41,11 @@ export default function Login() {
             <div className="w-full max-w-sm">
                 {/* Logo/Title */}
                 <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-[#13ec13] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#13ec13]/30">
-                        <span className="material-symbols-outlined text-black text-3xl">restaurant</span>
-                    </div>
+                    <img
+                        src="/favicon.png"
+                        alt="HealthNHabits Logo"
+                        className="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-lg"
+                    />
                     <h1 className="text-2xl font-black text-gray-900">Welcome Back</h1>
                     <p className="text-sm text-gray-500 mt-1">Sign in to continue tracking</p>
                 </div>
