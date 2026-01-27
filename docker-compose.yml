@@ -43,7 +43,7 @@ services:
     volumes:
       - dev_backend_uploads:/app/uploads
     ports:
-      - "5050:5050" # Access dev API at http://ip:5050
+      - "1110:5050" # Access dev API at http://ip:1110
     depends_on:
       dev-postgres:
         condition: service_healthy
@@ -56,11 +56,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: http://152.67.97.67:5050/api # Points to Dev API
+        VITE_API_URL: http://152.67.97.67:1110/api # Points to Dev API
     container_name: dev-healthnhabbits-frontend
     restart: unless-stopped
     ports:
-      - "3050:80" # Access dev site at http://ip:3050
+      - "1120:80" # Access dev site at http://ip:1120
     depends_on:
       - dev-backend
     networks:

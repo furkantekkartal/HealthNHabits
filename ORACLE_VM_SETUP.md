@@ -59,6 +59,10 @@ Add these rules:
 |-------------|-------------|------------------|-------------|
 | `0.0.0.0/0` | TCP | 80 | HTTP |
 | `0.0.0.0/0` | TCP | 443 | HTTPS |
+| `0.0.0.0/0` | TCP | 1110 | HealthNHabbits Dev Backend |
+| `0.0.0.0/0` | TCP | 1120 | HealthNHabbits Dev Frontend |
+| `0.0.0.0/0` | TCP | 1210 | HealthNHabbits Prod Backend |
+| `0.0.0.0/0` | TCP | 1220 | HealthNHabbits Prod Frontend |
 
 7. Click **Add Ingress Rules**
 
@@ -68,6 +72,11 @@ Also configure iptables on the VM (already done by script, but here if needed):
 # Allow HTTP and HTTPS through iptables
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
+# New Project Ports
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 1110 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 1120 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 1210 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 1220 -j ACCEPT
 
 # Make the rules persistent
 sudo apt install -y iptables-persistent
