@@ -24,7 +24,31 @@ Using PuTTY:
 
 ---
 
-## Part 2: Run Initial Setup Script
+## Part 2: Configure Oracle Cloud Firewall
+
+Add these **Ingress Rules** in [Oracle Cloud Console](https://cloud.oracle.com) → Networking → VCN → Security List:
+
+| Source CIDR | Protocol | Port | Description |
+|-------------|----------|------|-------------|
+| `0.0.0.0/0` | TCP | 80 | HTTP |
+| `0.0.0.0/0` | TCP | 443 | HTTPS |
+| `0.0.0.0/0` | TCP | 1110 | Dev Backend |
+| `0.0.0.0/0` | TCP | 1120 | Dev Frontend |
+| `0.0.0.0/0` | TCP | 1210 | Prod Backend |
+| `0.0.0.0/0` | TCP | 1220 | Prod Frontend |
+
+---
+
+## Part 3: Configure DNS (DuckDNS)
+
+1. Go to [DuckDNS.org](https://www.duckdns.org/)
+2. Find your subdomain: `furkantekkartal`
+3. Set the IP to: `152.67.97.67`
+4. Click **update ip**
+
+---
+
+## Part 4: Run Initial Setup Script
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/furkantekkartal/HealthNHabits/master/scripts/initial-setup.sh | bash
@@ -34,7 +58,7 @@ After this script completes, **log out and log back in** for Docker permissions 
 
 ---
 
-## Part 3: Cleanup Previous Installation (Optional)
+## Part 5: Cleanup Previous Installation (Optional)
 
 > **Skip this step if this is your first time setting up HealthNHabits.**
 
@@ -50,30 +74,6 @@ docker-compose -f docker-compose.yml down 2>/dev/null || true
 # Remove only this project's images (optional, saves disk space)
 docker images | grep healthnhabits | awk '{print $3}' | xargs -r docker rmi -f
 ```
-
----
-
-## Part 4: Configure DNS (DuckDNS)
-
-1. Go to [DuckDNS.org](https://www.duckdns.org/)
-2. Find your subdomain: `furkantekkartal`
-3. Set the IP to: `152.67.97.67`
-4. Click **update ip**
-
----
-
-## Part 5: Configure Oracle Cloud Firewall
-
-Add these **Ingress Rules** in [Oracle Cloud Console](https://cloud.oracle.com) → Networking → VCN → Security List:
-
-| Source CIDR | Protocol | Port | Description |
-|-------------|----------|------|-------------|
-| `0.0.0.0/0` | TCP | 80 | HTTP |
-| `0.0.0.0/0` | TCP | 443 | HTTPS |
-| `0.0.0.0/0` | TCP | 1110 | Dev Backend |
-| `0.0.0.0/0` | TCP | 1120 | Dev Frontend |
-| `0.0.0.0/0` | TCP | 1210 | Prod Backend |
-| `0.0.0.0/0` | TCP | 1220 | Prod Frontend |
 
 ---
 
