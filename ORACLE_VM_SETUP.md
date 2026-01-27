@@ -39,7 +39,7 @@ ubuntu@furkanubuntumachine:~$
 
 ```bash
 # Download and run setup script directly
-curl -sSL https://raw.githubusercontent.com/furkantekkartal/HealtNHabbits/main/scripts/initial-setup.sh | bash
+curl -sSL https://raw.githubusercontent.com/furkantekkartal/HealtNHabbits/master/scripts/initial-setup.sh | bash
 ```
 
 **Option B: Manual Setup**

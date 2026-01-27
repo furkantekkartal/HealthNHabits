@@ -41,6 +41,9 @@ sudo usermod -aG docker $USER
 echo -e "${YELLOW}🔥 Step 4: Configuring firewall...${NC}"
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
 sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
+
+# Ensure persistence tools are installed (sometimes removed by ufw)
+sudo apt install -y iptables-persistent
 sudo netfilter-persistent save
 
 # Note: You also need to configure Oracle VCN Security List!
