@@ -1,0 +1,49 @@
+# HealthNHabbits - Auto Deploy to Oracle Cloud VM
+# Triggers on push to main branch
+
+name: Deploy to Oracle VM
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Oracle VM
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.ORACLE_VM_HOST }}
+          username: ${{ secrets.ORACLE_VM_USER }}
+          key: ${{ secrets.ORACLE_VM_SSH_KEY }}
+          port: 22
+          script: |
+            cd ~/apps/HealthNHabbits
+            
+            # Pull latest changes
+            git pull origin main
+            
+            # Run the deployment script
+            bash scripts/deploy.sh
+            
+            # Show status
+            docker-compose -f docker-compose.prod.yml ps
+            
+            echo "✅ Deployment completed at $(date)"
+
+      - name: Health Check
+        run: |
+          # Wait for services to start
+          sleep 30
+          
+          # Check if the site is up (you can replace with your actual domain)
+          # curl -f https://YOUR_DOMAIN/api/health || exit 1
+          echo "Deployment triggered - verify manually at your domain"

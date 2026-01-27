@@ -1,0 +1,74 @@
+# HealthNHabbits Docker Compose - Development
+# Run with: docker-compose up -d
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: healthnhabbits-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-healthnhabbits}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-healthnhabbits_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-healthnhabbits}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-healthnhabbits}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - healthnhabbits-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: healthnhabbits-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: postgres://${POSTGRES_USER:-healthnhabbits}:${POSTGRES_PASSWORD:-healthnhabbits_dev}@postgres:5432/${POSTGRES_DB:-healthnhabbits}
+      JWT_SECRET: ${JWT_SECRET:-change_this_in_production}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    volumes:
+      - backend_uploads:/app/uploads
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - healthnhabbits-network
+
+  # Frontend (Nginx + React)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    container_name: healthnhabbits-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - healthnhabbits-network
+
+networks:
+  healthnhabbits-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  backend_uploads:

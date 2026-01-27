@@ -4,6 +4,7 @@ node_modules/
 # Environment variables - NEVER commit these
 .env
 .env.*
+!.env.production.example
 *.env
 backend/.env
 backend/.env.*
