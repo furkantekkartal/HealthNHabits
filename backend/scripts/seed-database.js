@@ -8,6 +8,9 @@ require('dotenv').config();
 const { sequelize } = require('../config/database');
 const Product = require('../models/Product');
 const User = require('../models/User');
+const UserProfile = require('../models/UserProfile');
+const DailyLog = require('../models/DailyLog');
+const DailyLogEntry = require('../models/DailyLogEntry');
 
 // 100 Popular Food Products with nutritional info
 const popularProducts = [
@@ -133,15 +136,14 @@ async function seedDatabase() {
         await sequelize.authenticate();
         console.log('✅ Connected to PostgreSQL\n');
 
-        // Drop all users
-        console.log('Dropping all users...');
-        const deletedUsers = await User.destroy({ where: {}, truncate: true, cascade: true });
-        console.log(`✅ All users deleted\n`);
-
-        // Clear existing products
-        console.log('Clearing existing products...');
+        // Clear all data (in correct order due to foreign keys)
+        console.log('Clearing all data...');
+        await DailyLogEntry.destroy({ where: {}, truncate: true, cascade: true });
+        await DailyLog.destroy({ where: {}, truncate: true, cascade: true });
+        await UserProfile.destroy({ where: {}, truncate: true, cascade: true });
+        await User.destroy({ where: {}, truncate: true, cascade: true });
         await Product.destroy({ where: {}, truncate: true, cascade: true });
-        console.log('✅ Products cleared\n');
+        console.log('✅ All data cleared\n');
 
         // Insert products
         console.log('Inserting 100 products...');
