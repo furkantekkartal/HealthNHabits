@@ -1,4 +1,4 @@
-# HealthNHabbits Docker Compose - DEVELOPMENT
+# HealthNHabits Docker Compose - DEVELOPMENT
 # This can run ALONGSIDE production on the same machine
 
 version: '3.8'

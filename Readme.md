@@ -10,7 +10,7 @@
 ![Vite](https://img.shields.io/badge/Vite-7.2-646CFF?logo=vite&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.1-06B6D4?logo=tailwindcss&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-5.2-000000?logo=express&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)
 
 ---
 
@@ -75,8 +75,8 @@
 |------------|---------|---------|
 | Node.js | 20+ | Runtime |
 | Express | 5.2 | Web Framework |
-| MongoDB | Atlas | Database |
-| Mongoose | 9.1 | ODM |
+| PostgreSQL | 16 | Database |
+| Sequelize | 6.37 | ORM |
 | JWT | 9.0 | Authentication |
 | bcryptjs | 3.0 | Password Hashing |
 | Multer | 2.0 | File Uploads |
@@ -89,7 +89,7 @@
 ## 📁 Project Structure
 
 ```
-HealtNHabbits/
+HealthNHabits/
 ├── frontend/                 # React + Vite frontend
 │   ├── src/
 │   │   ├── components/       # Reusable UI components
@@ -110,7 +110,7 @@ HealtNHabbits/
 │   └── package.json
 │
 ├── backend/                  # Express API server
-│   ├── models/               # Mongoose schemas
+│   ├── models/               # Sequelize models
 │   │   ├── User.js           # User authentication
 │   │   ├── UserProfile.js    # Profile with BMR/TDEE
 │   │   ├── DailyLog.js       # Daily entries (food, water, steps, weight)
@@ -136,15 +136,15 @@ HealtNHabbits/
 
 ### Prerequisites
 - Node.js 20+
-- MongoDB Atlas account (or local MongoDB)
+- PostgreSQL 16+ (or use Docker)
 - OpenRouter API key (for AI features)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/furkantekkartal/HealtNHabbits.git
-   cd HealtNHabbits
+   git clone https://github.com/furkantekkartal/HealthNHabits.git
+   cd HealthNHabits
    ```
 
 2. **Install backend dependencies**
@@ -157,14 +157,16 @@ HealtNHabbits/
    
    Create `.env` file in `/backend`:
    ```env
-   # MongoDB
-   MONGODB_URI=mongodb+srv://your-connection-string
+   # PostgreSQL
+   POSTGRES_USER=healthnhabits
+   POSTGRES_PASSWORD=your_secure_password
+   POSTGRES_DB=healthnhabits
    
    # JWT
    JWT_SECRET=your-secure-secret-key
    
-   # AI (OpenRouter)
-   OPENROUTER_API_KEY=your-openrouter-api-key
+   # AI (Gemini)
+   GEMINI_API_KEY=your_gemini_api_key
    
    # Server
    PORT=5000
@@ -248,10 +250,11 @@ HealtNHabbits/
 
 The app supports multiple environments:
 
-| Environment | Frontend Port | Backend Port | Config File |
-|-------------|---------------|--------------|-------------|
-| Development | 3050 | 5050 | `.env.dev` |
-| Master | 3040 | 5040 | `.env.master` |
+| Environment | Frontend Port | Backend Port | Notes |
+|-------------|---------------|--------------|-------|
+| Development (Docker) | 1120 | 1110 | Via docker-compose.yml |
+| Production (Docker) | 1220 (or 80) | 1210 | Via docker-compose.prod.yml |
+| Local Dev | 5173 | 5000 | npm run dev |
 
 Run specific environment:
 ```bash

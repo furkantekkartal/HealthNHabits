@@ -28,7 +28,7 @@
 | Virtual Machine | ✅ Running | Ubuntu 24.04 (AMD) |
 | Containerization | ✅ Active | Docker + Docker Compose |
 | Reverse Proxy | ✅ Active | Nginx |
-| SSL / HTTPS | ✅ Active | Cloudflare Flexible SSL |
+| SSL / HTTPS | ⏳ Optional | DuckDNS (HTTP) or Let's Encrypt |
 | Database | ✅ Active | PostgreSQL 16 (on-premise Docker) |
 | CI/CD | ✅ Ready | GitHub Actions (Auto-deploy on push) |
 
@@ -89,7 +89,7 @@
   - [x] Firewall/Security List (80/443)
 - [x] **6.3 Reverse Proxy & SSL**
   - [x] Nginx configuration
-  - [x] Cloudflare DNS/SSL setup
+  - [x] DuckDNS domain setup
 - [x] **6.4 Automation**
   - [x] GitHub Actions deployment workflow
 
