@@ -120,6 +120,7 @@ server_name furkantekkartal.duckdns.org;
 ### Production
 
 ```bash
+docker-compose -f docker-compose.prod.yml down --remove-orphans
 docker-compose -f docker-compose.prod.yml up -d --build
 ```
 
@@ -132,6 +133,7 @@ docker-compose -f docker-compose.prod.yml up -d --build
 ### Development
 
 ```bash
+docker-compose -f docker-compose-dev.yml down --remove-orphans
 docker-compose -f docker-compose-dev.yml up -d --build
 ```
 
@@ -146,7 +148,9 @@ docker-compose -f docker-compose-dev.yml up -d --build
 Production and Development use different ports and container names, so they can run simultaneously.
 
 ```bash
+docker-compose -f docker-compose.prod.yml down --remove-orphans
 docker-compose -f docker-compose.prod.yml up -d --build
+docker-compose -f docker-compose-dev.yml down --remove-orphans
 docker-compose -f docker-compose-dev.yml up -d --build
 ```
 
@@ -184,11 +188,13 @@ curl http://localhost/api/health
 ```bash
 cd ~/apps/HealthNHabits
 git pull origin master
+docker-compose -f docker-compose.prod.yml down --remove-orphans
 docker-compose -f docker-compose.prod.yml up -d --build
 ```
 
 If running both environments, also rebuild dev:
 ```bash
+docker-compose -f docker-compose-dev.yml down --remove-orphans
 docker-compose -f docker-compose-dev.yml up -d --build
 ```
 
