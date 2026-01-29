@@ -71,7 +71,39 @@ Add these **Ingress Rules** in [Oracle Cloud Console](https://cloud.oracle.com) 
 
 > **Skip this step if this is your first time setting up HealthNHabits.**
 
-If you have previously installed HealthNHabits and want a fresh start:
+### ⚠️ IMPORTANT: Backup Before Cleanup
+
+Before removing anything, **always backup your database and user files** to a safe location outside the project folder:
+
+```bash
+# Create a permanent backup folder (outside project directory - never gets deleted)
+sudo mkdir -p /home/ubuntu/backups/healthnhabits
+sudo chown ubuntu:ubuntu /home/ubuntu/backups/healthnhabits
+
+# Create timestamped backup
+BACKUP_DATE=$(date +%Y%m%d_%H%M%S)
+mkdir -p /home/ubuntu/backups/healthnhabits/$BACKUP_DATE
+
+# Backup Production Database
+docker exec healthnhabits-db pg_dump -U healthnhabits -d healthnhabits > /home/ubuntu/backups/healthnhabits/$BACKUP_DATE/prod_database.sql
+
+# Backup Development Database (if exists)
+docker exec dev-healthnhabits-db pg_dump -U healthnhabits -d dev_healthnhabits > /home/ubuntu/backups/healthnhabits/$BACKUP_DATE/dev_database.sql 2>/dev/null || echo "No dev database to backup"
+
+# Backup Upload Files (profile pictures, etc.)
+docker cp healthnhabits-backend:/app/uploads /home/ubuntu/backups/healthnhabits/$BACKUP_DATE/prod_uploads 2>/dev/null || echo "No prod uploads to backup"
+docker cp dev-healthnhabits-backend:/app/uploads /home/ubuntu/backups/healthnhabits/$BACKUP_DATE/dev_uploads 2>/dev/null || echo "No dev uploads to backup"
+
+# Verify backup
+echo "✅ Backup created at: /home/ubuntu/backups/healthnhabits/$BACKUP_DATE"
+ls -la /home/ubuntu/backups/healthnhabits/$BACKUP_DATE
+```
+
+> 📁 **Safe Location:** `/home/ubuntu/backups/` is outside the project folder and will NOT be deleted when you remove the project.
+
+### Cleanup Commands
+
+After backup is complete, you can safely cleanup:
 
 ```bash
 cd ~/apps/HealthNHabits
@@ -82,6 +114,16 @@ docker-compose -f docker-compose-dev.yml down 2>/dev/null || true
 
 # Remove only this project's images (optional, saves disk space)
 docker images | grep healthnhabits | awk '{print $3}' | xargs -r docker rmi -f
+```
+
+### Restore from Backup (If Needed)
+
+```bash
+# Restore database from backup
+cat /home/ubuntu/backups/healthnhabits/YYYYMMDD_HHMMSS/prod_database.sql | docker exec -i healthnhabits-db psql -U healthnhabits -d healthnhabits
+
+# Restore upload files
+docker cp /home/ubuntu/backups/healthnhabits/YYYYMMDD_HHMMSS/prod_uploads/. healthnhabits-backend:/app/uploads/
 ```
 
 ---
