@@ -60,9 +60,12 @@ export default function CatalogNew() {
             setIsEditMode(true);
             setEntryId(entry._id);
 
-            // Get the date from the entry time
+            // Get the date from the entry time using local date components
             const entryTime = new Date(entry.time);
-            const dateStr = entryTime.toISOString().split('T')[0];
+            const year = entryTime.getFullYear();
+            const month = String(entryTime.getMonth() + 1).padStart(2, '0');
+            const day = String(entryTime.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
             setEntryDate(dateStr);
 
             setFormData({

@@ -8,7 +8,7 @@ Complete guide for deploying **HealthNHabits** to your Oracle Cloud Always Free 
 
 | Requirement | Value |
 |-------------|-------|
-| VM IP Address | `152.67.97.67` |
+| VM IP Address | `149.118.67.133` |
 | GitHub Repo | `https://github.com/furkantekkartal/HealthNHabits` |
 | Domain | `furkantekkartal.duckdns.org` |
 | SSH User | `ubuntu` |
@@ -18,7 +18,7 @@ Complete guide for deploying **HealthNHabits** to your Oracle Cloud Always Free 
 ## Part 1: Connect to Your VM
 
 Using PuTTY:
-1. Host: `152.67.97.67`, Port: `22`
+1. Host: `149.118.67.133`, Port: `22`
 2. Connection → SSH → Auth → Credentials: Select your `.ppk` file
 3. Login as: `ubuntu`
 
@@ -43,7 +43,7 @@ Add these **Ingress Rules** in [Oracle Cloud Console](https://cloud.oracle.com) 
 
 1. Go to [DuckDNS.org](https://www.duckdns.org/)
 2. Find your subdomain: `furkantekkartal`
-3. Set the IP to: `152.67.97.67`
+3. Set the IP to: `149.118.67.133`
 4. Click **update ip**
 
 ---
@@ -126,8 +126,8 @@ docker-compose -f docker-compose.prod.yml up -d --build
 | Access | URL |
 |--------|-----|
 | Via Domain | `http://furkantekkartal.duckdns.org` |
-| Direct Frontend | `http://152.67.97.67:1220` |
-| Direct Backend | `http://152.67.97.67:1210` |
+| Direct Frontend | `http://149.118.67.133:1220` |
+| Direct Backend | `http://149.118.67.133:1210` |
 
 ### Development
 
@@ -138,8 +138,8 @@ docker-compose -f docker-compose.yml up -d --build
 | Access | URL |
 |--------|-----|
 | Via Domain | `http://furkantekkartal.duckdns.org:1120` |
-| Direct Frontend | `http://152.67.97.67:1120` |
-| Direct Backend | `http://152.67.97.67:1110` |
+| Direct Frontend | `http://149.118.67.133:1120` |
+| Direct Backend | `http://149.118.67.133:1110` |
 
 ### Both Environments (Side-by-Side)
 
@@ -152,8 +152,8 @@ docker-compose -f docker-compose.yml up -d --build
 
 | Environment | Frontend | Backend |
 |-------------|----------|---------|
-| Production | `http://furkantekkartal.duckdns.org` | `http://152.67.97.67:1210` |
-| Development | `http://furkantekkartal.duckdns.org:1120` | `http://152.67.97.67:1110` |
+| Production | `http://furkantekkartal.duckdns.org` | `http://149.118.67.133:1210` |
+| Development | `http://furkantekkartal.duckdns.org:1120` | `http://149.118.67.133:1110` |
 
 > **Note**: The Always Free VM has ~1GB RAM. Running both may cause slowdowns.
 

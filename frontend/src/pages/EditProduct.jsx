@@ -265,7 +265,8 @@ export default function EditProduct() {
         try {
             // If editing a food entry from ActivityLog
             if (isEditingEntry && editFoodEntry) {
-                const entryDate = new Date(editFoodEntry.time).toISOString().split('T')[0];
+                const tempDate = new Date(editFoodEntry.time);
+                const entryDate = `${tempDate.getFullYear()}-${String(tempDate.getMonth() + 1).padStart(2, '0')}-${String(tempDate.getDate()).padStart(2, '0')}`;
                 await updateEntry(editFoodEntry._id, {
                     name: formData.name,
                     calories: formData.calories,

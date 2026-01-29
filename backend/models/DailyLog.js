@@ -75,7 +75,11 @@ DailyLog.getOrCreateToday = async function (userId) {
     if (!userId) throw new Error('userId is required');
 
     const today = new Date();
-    const dateString = today.toISOString().split('T')[0];
+    // Use local date components to avoid UTC conversion issues
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
 
     const [log, created] = await this.findOrCreate({
         where: { userId, date: dateString },
@@ -101,8 +105,18 @@ DailyLog.getOrCreateToday = async function (userId) {
 DailyLog.getOrCreateForDate = async function (userId, date) {
     if (!userId) throw new Error('userId is required');
 
-    const targetDate = new Date(date);
-    const dateString = targetDate.toISOString().split('T')[0];
+    // Date comes as YYYY-MM-DD string from frontend, use directly if valid format
+    // Otherwise parse and format using local date components
+    let dateString;
+    if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        dateString = date;
+    } else {
+        const targetDate = new Date(date);
+        const year = targetDate.getFullYear();
+        const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+        const day = String(targetDate.getDate()).padStart(2, '0');
+        dateString = `${year}-${month}-${day}`;
+    }
 
     const [log, created] = await this.findOrCreate({
         where: { userId, date: dateString },

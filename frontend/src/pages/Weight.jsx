@@ -66,7 +66,7 @@ export default function Weight() {
                     const selectedDateObj = new Date(selectedDate);
                     const weekAgoDate = new Date(selectedDateObj);
                     weekAgoDate.setDate(weekAgoDate.getDate() - 7);
-                    const weekAgoStr = weekAgoDate.toISOString().split('T')[0];
+                    const weekAgoStr = `${weekAgoDate.getFullYear()}-${String(weekAgoDate.getMonth() + 1).padStart(2, '0')}-${String(weekAgoDate.getDate()).padStart(2, '0')}`;
 
                     const weekAgoEntry = history.find(h => h.date === weekAgoStr && h.weight !== null);
                     if (weekAgoEntry) {

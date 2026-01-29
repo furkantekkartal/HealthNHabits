@@ -23,11 +23,13 @@ Schema: `[Project#][Env][Service][0]`
 
 ---
 
-## 2. AnotherProject (Planned)
+## 2. HomeMadeKahoot
 
 | Environment | Service | Port | Internal Container Port | URL |
 |-------------|---------|------|-------------------------|-----|
 | **Dev** | Backend | **2110** | ... | `http://IP:2110` |
 | **Dev** | Frontend | **2120** | ... | `http://IP:2120` |
+| **Dev** | Database | **2130** | ... | PostgreSQL |
 | **Prod** | Backend | **2210** | ... | `http://IP:2210` |
 | **Prod** | Frontend | **2220** | ... | `http://IP:2220` |
+| **Prod** | Database | **2230** | ... | PostgreSQL |

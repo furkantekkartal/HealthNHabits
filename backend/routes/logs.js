@@ -33,8 +33,8 @@ router.get('/today', async (req, res) => {
 // Get log for specific date
 router.get('/date/:date', async (req, res) => {
     try {
-        const date = new Date(req.params.date);
-        const dateString = date.toISOString().split('T')[0];
+        // Date comes as YYYY-MM-DD string from frontend, use directly
+        const dateString = req.params.date;
 
         const log = await DailyLog.findOne({
             where: {
@@ -147,8 +147,8 @@ router.post('/water/remove', async (req, res) => {
 
         let log;
         if (date) {
-            const dateString = new Date(date).toISOString().split('T')[0];
-            log = await DailyLog.findOne({ where: { userId, date: dateString } });
+            // Date comes as YYYY-MM-DD string from frontend, use directly
+            log = await DailyLog.findOne({ where: { userId, date } });
         } else {
             log = await DailyLog.getOrCreateToday(userId);
         }
@@ -311,8 +311,8 @@ router.delete('/entry/:entryId', async (req, res) => {
 
         let log;
         if (date) {
-            const dateString = new Date(date).toISOString().split('T')[0];
-            log = await DailyLog.findOne({ where: { userId, date: dateString } });
+            // Date comes as YYYY-MM-DD string from frontend, use directly
+            log = await DailyLog.findOne({ where: { userId, date } });
         } else {
             log = await DailyLog.getOrCreateToday(userId);
         }
@@ -352,8 +352,8 @@ router.put('/entry/:entryId', async (req, res) => {
 
         let log;
         if (date) {
-            const dateString = new Date(date).toISOString().split('T')[0];
-            log = await DailyLog.findOne({ where: { userId, date: dateString } });
+            // Date comes as YYYY-MM-DD string from frontend, use directly
+            log = await DailyLog.findOne({ where: { userId, date } });
         } else {
             log = await DailyLog.getOrCreateToday(userId);
         }
