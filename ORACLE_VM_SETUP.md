@@ -300,6 +300,26 @@ docker rm -f $(docker ps -aq --filter "name=healthnhabits") 2>/dev/null || true
 docker-compose -f docker-compose.prod.yml up -d --build
 ```
 
+If docker-compose keeps failing, use manual build and run:
+
+```bash
+# Remove problematic container
+docker rm -f dev-healthnhabits-frontend
+
+# Build without cache (replace IP with your VM IP)
+docker build --no-cache -t healthnhabits_dev-frontend \
+  --build-arg VITE_API_URL=http://149.118.67.133:1110/api \
+  ./frontend
+
+# Run manually
+docker run -d \
+  --name dev-healthnhabits-frontend \
+  --network healthnhabits_dev-network \
+  -p 1120:80 \
+  --restart unless-stopped \
+  healthnhabits_dev-frontend
+```
+
 ---
 
 ## Port Reference

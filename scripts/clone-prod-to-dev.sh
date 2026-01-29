@@ -60,16 +60,27 @@ echo -e "${YELLOW}Step 4: Importing to development database...${NC}"
 docker exec -i $DEV_CONTAINER psql -U $DEV_USER -d $DEV_DB < /tmp/prod_backup.sql
 echo -e "${GREEN}✓ Data imported to development${NC}"
 
-# Copy upload files
+# Copy upload files (profile pictures, etc.)
 echo -e "${YELLOW}Step 5: Copying upload files...${NC}"
-PROD_UPLOADS=$(docker inspect --format='{{range .Mounts}}{{if eq .Destination "/app/uploads"}}{{.Source}}{{end}}{{end}}' healthnhabits-backend 2>/dev/null || echo "")
-DEV_UPLOADS=$(docker inspect --format='{{range .Mounts}}{{if eq .Destination "/app/uploads"}}{{.Source}}{{end}}{{end}}' dev-healthnhabits-backend 2>/dev/null || echo "")
 
-if [ -n "$PROD_UPLOADS" ] && [ -n "$DEV_UPLOADS" ]; then
-    sudo cp -r $PROD_UPLOADS/* $DEV_UPLOADS/ 2>/dev/null || true
-    echo -e "${GREEN}✓ Upload files copied${NC}"
+# Method 1: Try using docker cp (more reliable for volumes)
+docker cp healthnhabits-backend:/app/uploads/. /tmp/prod_uploads/ 2>/dev/null
+
+if [ -d "/tmp/prod_uploads" ] && [ "$(ls -A /tmp/prod_uploads 2>/dev/null)" ]; then
+    docker cp /tmp/prod_uploads/. dev-healthnhabits-backend:/app/uploads/
+    rm -rf /tmp/prod_uploads
+    echo -e "${GREEN}✓ Upload files copied (${NC}$(docker exec dev-healthnhabits-backend ls /app/uploads 2>/dev/null | wc -l)${GREEN} files)${NC}"
 else
-    echo -e "${YELLOW}⚠ Could not locate upload volumes, skipping file copy${NC}"
+    # Method 2: Fallback to volume mount paths
+    PROD_UPLOADS=$(docker inspect --format='{{range .Mounts}}{{if eq .Destination "/app/uploads"}}{{.Source}}{{end}}{{end}}' healthnhabits-backend 2>/dev/null || echo "")
+    DEV_UPLOADS=$(docker inspect --format='{{range .Mounts}}{{if eq .Destination "/app/uploads"}}{{.Source}}{{end}}{{end}}' dev-healthnhabits-backend 2>/dev/null || echo "")
+    
+    if [ -n "$PROD_UPLOADS" ] && [ -n "$DEV_UPLOADS" ]; then
+        sudo cp -r $PROD_UPLOADS/* $DEV_UPLOADS/ 2>/dev/null || true
+        echo -e "${GREEN}✓ Upload files copied (volume method)${NC}"
+    else
+        echo -e "${YELLOW}⚠ Could not locate upload volumes, skipping file copy${NC}"
+    fi
 fi
 
 # Cleanup
