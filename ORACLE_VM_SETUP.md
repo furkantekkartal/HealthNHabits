@@ -259,6 +259,35 @@ sudo systemctl disable --now snapd.socket
 docker system prune -af
 ```
 
+### Fix: Docker-Compose "ContainerConfig" Error
+
+If you see this error when running `docker-compose up`:
+```
+KeyError: 'ContainerConfig'
+```
+
+This is a known bug with `docker-compose 1.29.2` and newer Docker versions. **Solution:**
+
+```bash
+# Stop and remove containers first
+docker-compose -f docker-compose.prod.yml down --remove-orphans
+# OR for dev:
+docker-compose -f docker-compose.yml down --remove-orphans
+
+# Then start fresh
+docker-compose -f docker-compose.prod.yml up -d --build
+```
+
+If the above still fails, force remove containers:
+
+```bash
+# Remove stuck containers
+docker rm -f $(docker ps -aq --filter "name=healthnhabits") 2>/dev/null || true
+
+# Start again
+docker-compose -f docker-compose.prod.yml up -d --build
+```
+
 ---
 
 ## Port Reference
