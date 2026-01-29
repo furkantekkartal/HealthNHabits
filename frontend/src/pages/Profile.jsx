@@ -295,7 +295,7 @@ export default function Profile() {
             </header>
 
             {/* Main Content */}
-            <main className="flex-1 w-full max-w-md mx-auto p-4 flex flex-col gap-6 pb-24">
+            <main className="flex-1 w-full max-w-md mx-auto p-4 flex flex-col gap-6 pb-40">
                 {/* Profile Picture & Name */}
                 <div className="flex flex-col items-center gap-4">
                     <div
@@ -487,8 +487,8 @@ export default function Profile() {
                 </div>
             </main>
 
-            {/* Footer Action */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#f6f8f6]/80 backdrop-blur-md border-t border-gray-100 z-40">
+            {/* Footer Action - positioned above BottomNav */}
+            <div className="fixed bottom-20 left-0 right-0 p-4 bg-[#f6f8f6]/80 backdrop-blur-md border-t border-gray-100 z-20">
                 <div className="max-w-md mx-auto">
                     <button
                         onClick={handleSave}
