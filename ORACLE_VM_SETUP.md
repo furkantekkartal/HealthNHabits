@@ -59,7 +59,7 @@ cd ~/apps/HealthNHabits
 
 # Stop only this project's containers (does NOT affect other projects)
 docker-compose -f docker-compose.prod.yml down 2>/dev/null || true
-docker-compose -f docker-compose.yml down 2>/dev/null || true
+docker-compose -f docker-compose-dev.yml down 2>/dev/null || true
 
 # Remove only this project's images (optional, saves disk space)
 docker images | grep healthnhabits | awk '{print $3}' | xargs -r docker rmi -f
@@ -132,7 +132,7 @@ docker-compose -f docker-compose.prod.yml up -d --build
 ### Development
 
 ```bash
-docker-compose -f docker-compose.yml up -d --build
+docker-compose -f docker-compose-dev.yml up -d --build
 ```
 
 | Access | URL |
@@ -147,7 +147,7 @@ Production and Development use different ports and container names, so they can 
 
 ```bash
 docker-compose -f docker-compose.prod.yml up -d --build
-docker-compose -f docker-compose.yml up -d --build
+docker-compose -f docker-compose-dev.yml up -d --build
 ```
 
 | Environment | Frontend | Backend |
@@ -159,7 +159,7 @@ docker-compose -f docker-compose.yml up -d --build
 
 **Stop environments:**
 ```bash
-docker-compose -f docker-compose.yml down      # Stop Dev
+docker-compose -f docker-compose-dev.yml down      # Stop Dev
 docker-compose -f docker-compose.prod.yml down # Stop Prod
 ```
 
@@ -189,7 +189,7 @@ docker-compose -f docker-compose.prod.yml up -d --build
 
 If running both environments, also rebuild dev:
 ```bash
-docker-compose -f docker-compose.yml up -d --build
+docker-compose -f docker-compose-dev.yml up -d --build
 ```
 
 ---
@@ -244,7 +244,7 @@ The Oracle Free Tier VM has only ~1GB RAM. If running low:
 
 **Stop dev environment when not needed:**
 ```bash
-docker-compose -f docker-compose.yml down
+docker-compose -f docker-compose-dev.yml down
 ```
 
 **Disable Snap (saves 50-100MB RAM):**
@@ -272,7 +272,7 @@ This is a known bug with `docker-compose 1.29.2` and newer Docker versions. **So
 # Stop and remove containers first
 docker-compose -f docker-compose.prod.yml down --remove-orphans
 # OR for dev:
-docker-compose -f docker-compose.yml down --remove-orphans
+docker-compose -f docker-compose-dev.yml down --remove-orphans
 
 # Then start fresh
 docker-compose -f docker-compose.prod.yml up -d --build

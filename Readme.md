@@ -252,7 +252,7 @@ The app supports multiple environments:
 
 | Environment | Frontend Port | Backend Port | Notes |
 |-------------|---------------|--------------|-------|
-| Development (Docker) | 1120 | 1110 | Via docker-compose.yml |
+| Development (Docker) | 1120 | 1110 | Via docker-compose-dev.yml |
 | Production (Docker) | 1220 (or 80) | 1210 | Via docker-compose.prod.yml |
 | Local Dev | 5173 | 5000 | npm run dev |
 
