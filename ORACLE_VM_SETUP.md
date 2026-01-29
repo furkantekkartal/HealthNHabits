@@ -274,6 +274,11 @@ If `healthnhabits-dev.furkantekkartal.com` returns 502:
     ```bash
     bash scripts/clone-prod-to-dev.sh
     ```
+    This script automatically:
+    - Exports production database
+    - Imports it into development database
+    - Copies all upload files (profile images, etc.) to development
+    *Note: Both environments must be running for this to work.*
 
 6.  **Deploy Prod**:
     *   Merge `dev` to `master` locally and push.
