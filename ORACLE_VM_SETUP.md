@@ -1,6 +1,6 @@
 # 🚀 Oracle Cloud VM Setup Guide - HealthNHabits
 
-Complete guide for deploying **HealthNHabits** to your Oracle Cloud VM.
+Complete guide for deploying **HealthNHabits** and **Portfolio** to your Oracle Cloud VM.
 
 ---
 
@@ -8,16 +8,14 @@ Complete guide for deploying **HealthNHabits** to your Oracle Cloud VM.
 
 - [Part 1: Connect to Your VM](#part-1-connect-to-your-vm)
 - [Part 2: Configure Oracle Cloud Firewall](#part-2-configure-oracle-cloud-firewall)
-- [Part 3: Configure DNS (DuckDNS)](#part-3-configure-dns-duckdns)
+- [Part 3: Configure Cloudflare DNS](#part-3-configure-cloudflare-dns)
 - [Part 4: Cleanup Previous Installation](#part-4-cleanup-previous-installation-optional)
 - [Part 5: Run Initial Setup Script](#part-5-run-initial-setup-script)
 - [Part 6: Configure Environment Variables](#part-6-configure-environment-variables)
-- [Part 7: Configure Nginx](#part-7-configure-nginx-optional)
-- [Part 8: Start Containers](#part-8-start-containers)
-- [Part 9: Verify Installation](#part-9-verify-installation)
-- [Part 10: Troubleshooting](#part-10-troubleshooting)
-- [Part 11: Updating the Application](#part-11-updating-the-application)
-- [Port Reference](#port-reference)
+- [Part 7: Start Containers](#part-8-start-containers)
+- [Part 8: Verify Installation](#part-9-verify-installation)
+- [Part 9: Troubleshooting](#part-10-troubleshooting)
+- [Part 10: Updating the Application](#part-11-updating-the-application)
 
 ---
 
@@ -27,7 +25,7 @@ Complete guide for deploying **HealthNHabits** to your Oracle Cloud VM.
 |-------------|-------|
 | VM IP Address | `149.118.67.133` |
 | GitHub Repo | `https://github.com/furkantekkartal/HealthNHabits` |
-| Domain | `furkantekkartal.duckdns.org` |
+| Domain | `furkantekkartal.com` |
 | SSH User | `ubuntu` |
 
 ---
@@ -58,12 +56,26 @@ Add these **Ingress Rules** in [Oracle Cloud Console](https://cloud.oracle.com) 
 
 ---
 
-## Part 3: Configure DNS (DuckDNS)
+## Part 3: Configure Cloudflare DNS
 
-1. Go to [DuckDNS.org](https://www.duckdns.org/)
-2. Find your subdomain: `furkantekkartal`
-3. Set the IP to: `149.118.67.133`
-4. Click **update ip**
+We use Cloudflare for DNS management (instead of DuckDNS).
+
+1. Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. Select your domain (`furkantekkartal.com`)
+3. Go to **DNS** → **Records**
+4. Add the following **A records** (ensure Proxy status is **DNS Only** / grey cloud):
+
+| Type | Name | Content | Proxy Status |
+|------|------|---------|--------------|
+| A | `@` | `149.118.67.133` | ☁️ DNS Only |
+| A | `www` | `149.118.67.133` | ☁️ DNS Only |
+| A | `healthnhabits` | `149.118.67.133` | ☁️ DNS Only |
+| A | `healthnhabits-dev` | `149.118.67.133` | ☁️ DNS Only |
+
+**URLs:**
+- Portfolio: `http://furkantekkartal.com`
+- Production: `http://healthnhabits.furkantekkartal.com`
+- Development: `http://healthnhabits-dev.furkantekkartal.com`
 
 ---
 
@@ -163,292 +175,114 @@ GEMINI_API_KEY=your_gemini_api_key
 
 ---
 
-## Part 7: Configure Nginx (Optional)
+## Part 7: Start Containers
 
-> **Note:** The default domain is `furkantekkartal.duckdns.org`. If you want to use a different domain, update the nginx config. Otherwise, skip this step.
-
-```bash
-nano nginx/conf.d/default.conf
-```
-
-Find `server_name` and set it to your domain:
-```
-server_name your-domain.duckdns.org;
-```
-
----
-
-## Part 8: Start Containers
-
-### Production
+Nginx handles routing based on subdomains (`healthnhabits-dev`, `healthnhabits`, `www`).
+For this to work, **Dev environment MUST be started first** to create the network, then Prod connects to it.
 
 ```bash
-docker-compose -f docker-compose.prod.yml up -d --build
-```
+cd ~/apps/HealthNHabits
 
-If you get `KeyError: 'ContainerConfig'` error, see [Part 10: Troubleshooting](#part-10-troubleshooting).
-
-| Access | URL |
-|--------|-----|
-| Via Domain | `http://furkantekkartal.duckdns.org` |
-| Direct Frontend | `http://149.118.67.133:1220` |
-
-### Development
-
-> **Note:** Development is designed to run alongside Production. They use different ports and don't interfere with each other.
-
-```bash
-docker-compose -f docker-compose-dev.yml up -d --build
-```
-
-If you get `KeyError: 'ContainerConfig'` error, see [Part 10: Troubleshooting](#part-10-troubleshooting).
-
-| Access | URL |
-|--------|-----|
-| Via Domain | `http://furkantekkartal.duckdns.org:1120` |
-| Direct Frontend | `http://149.118.67.133:1120` |
-
-### Both Environments (Side-by-Side)
-
-Production and Development use different ports and container names, so they can run simultaneously.
-
-```bash
-# Start Production
-docker-compose -f docker-compose.prod.yml up -d --build
-
-# Start Development
+# 1. Start Development Environment (Creates internal network)
 docker-compose -f docker-compose-dev.yml up -d --build
 
-# Verify both are running
+# 2. Start Production Environment (Connects to dev network for routing)
+docker-compose -f docker-compose.prod.yml up -d --build
+
+# 3. Verify All Containers
 docker ps --format "table {{.Names}}\t{{.Status}}"
 ```
-
-| Environment | Frontend | 
-|-------------|----------|
-| Production | `http://furkantekkartal.duckdns.org` |
-| Development | `http://furkantekkartal.duckdns.org:1120` |
 
 ### Stop Environments
 
-**Stop Development only:**
+**Stop Everything:**
 ```bash
+docker-compose -f docker-compose.prod.yml down
 docker-compose -f docker-compose-dev.yml down
 ```
 
-**Stop Production only:**
-```bash
-docker-compose -f docker-compose.prod.yml down
-```
-
 ---
 
-## Part 9: Verify Installation
+## Part 8: Verify Installation
 
-### Check Container Status
-```bash
-docker ps
-docker ps --format "table {{.Names}}\t{{.Status}}"
-```
+Visit the URLs in your browser:
 
-### Check Container Memory Usage
-```bash
-docker stats --no-stream
-docker stats --no-stream --format "table {{.Name}}\t{{.MemUsage}}"
-```
+1. **Portfolio:** `http://furkantekkartal.com`
+2. **Production App:** `http://healthnhabits.furkantekkartal.com`
+3. **Development App:** `http://healthnhabits-dev.furkantekkartal.com`
 
-### View Container Logs
+### Check Container Logs
 ```bash
-# Production logs
+# Nginx / Router Logs
+docker logs healthnhabits-nginx --tail 50
+
+# Production Backend Logs
 docker logs healthnhabits-backend --tail 50
-docker logs healthnhabits-frontend --tail 50
 
-# Development logs
+# Development Backend Logs
 docker logs dev-healthnhabits-backend --tail 50
-docker logs dev-healthnhabits-frontend --tail 50
-```
-
-### Check System Resources
-```bash
-htop
-free -h
-```
-
-### Test Health Endpoint
-```bash
-# Production
-curl http://localhost:1210/api/health
-
-# Development
-curl http://localhost:1110/api/health
 ```
 
 ---
 
-## Part 10: Troubleshooting
+## Part 9: Troubleshooting
 
 ### Fix: Docker-Compose "ContainerConfig" Error
 
-If you see this error when running `docker-compose up`:
-```
-KeyError: 'ContainerConfig'
-```
+If you see `KeyError: 'ContainerConfig'` when running `docker-compose up`, use these commands:
 
-This is a known bug with `docker-compose 1.29.2` and newer Docker versions.
-
-**Solution 1: Force remove containers**
 ```bash
-# For Production
-docker rm -f $(docker ps -aq --filter "name=healthnhabits-") 2>/dev/null || true
-docker-compose -f docker-compose.prod.yml up -d --build
-
-# For Development
+# Force remove and restart DEV
 docker rm -f $(docker ps -aq --filter "name=dev-healthnhabits") 2>/dev/null || true
 docker-compose -f docker-compose-dev.yml up -d --build
+
+# Force remove and restart PROD
+docker rm -f $(docker ps -aq --filter "name=healthnhabits-") 2>/dev/null || true
+docker-compose -f docker-compose.prod.yml up -d --build
 ```
 
-**Solution 2: Manual build and run (if docker-compose keeps failing)**
+### Fix: Dev Subdomain "502 Bad Gateway"
 
-```bash
-# Remove problematic container
-docker rm -f dev-healthnhabits-frontend
-
-# Build without cache (replace IP with your VM IP)
-docker build --no-cache -t healthnhabits_dev-frontend \
-  --build-arg VITE_API_URL=http://149.118.67.133:1110/api \
-  ./frontend
-
-# Run manually
-docker run -d \
-  --name dev-healthnhabits-frontend \
-  --network healthnhabits_dev-network \
-  -p 1120:80 \
-  --restart unless-stopped \
-  healthnhabits_dev-frontend
-```
-
-### Free Up Disk Space
-
-```bash
-docker system prune -af
-```
-
-### Disable Snap (Optional - saves RAM)
-
-Snap is Ubuntu's package manager - not needed for Docker servers.
-```bash
-sudo systemctl disable --now snapd
-sudo systemctl disable --now snapd.socket
-```
+If `healthnhabits-dev.furkantekkartal.com` returns 502:
+1. Ensure Dev containers are running: `docker ps | grep dev-`
+2. Ensure Prod Nginx is connected to `healthnhabits_dev-network`:
+   ```bash
+   docker network inspect healthnhabits_dev-network | grep healthnhabits-nginx
+   ```
+3. Restart Nginx:
+   ```bash
+   docker restart healthnhabits-nginx
+   ```
 
 ---
 
-## Part 11: Updating the Application
+## Part 10: Updating the Application
 
 ### Development Workflow
 
-The recommended workflow is:
-1. Make changes locally on your IDE (dev branch)
-2. Push to GitHub (dev branch)
-3. Deploy to Dev environment on VM
-4. Test thoroughly
-5. Push to master branch
-6. Deploy to Production
+1.  **Code**: Make changes locally on `dev` branch.
+2.  **Push**: `git push origin dev`
+3.  **Deploy Dev**:
+    ```bash
+    cd ~/apps/HealthNHabits
+    git pull origin dev
+    docker-compose -f docker-compose-dev.yml up -d --build
+    ```
+4.  **Test**: Verified at `http://healthnhabits-dev.furkantekkartal.com`
 
-### Step 1: Clone Production Data to Development (Before Making Changes)
+5.  **Sync Data (Optional)**: If you need fresh prod data in dev:
+    ```bash
+    bash scripts/clone-prod-to-dev.sh
+    ```
 
-Before pulling new changes to dev, sync the data from production:
-
-```bash
-cd ~/apps/HealthNHabits
-bash scripts/clone-prod-to-dev.sh
-```
-
-This script:
-- Exports production database via `pg_dump`
-- Clears development database
-- Imports data to development (passwords stay hashed)
-- Copies upload files (profile pictures, etc.)
-
-> ⚠️ **Both environments must be running for this script to work!**
-
-### Step 2: Update Development Environment
-
-After pushing your changes to the `dev` branch from your IDE:
-
-```bash
-cd ~/apps/HealthNHabits
-
-# Pull latest dev changes
-git fetch origin
-git checkout dev
-git pull origin dev
-
-# Rebuild dev containers (without affecting production)
-docker rm -f $(docker ps -aq --filter "name=dev-healthnhabits") 2>/dev/null || true
-docker-compose -f docker-compose-dev.yml up -d --build
-
-# Verify dev is running
-docker ps --filter "name=dev-healthnhabits"
-```
-
-Test your changes at: `http://149.118.67.133:1120`
-
-### Step 3: Push Dev Changes to Master
-
-Once dev is working correctly, push changes to master from your IDE:
-
-```bash
-# On your local machine (IDE)
-git checkout master
-git merge dev
-git push origin master
-```
-
-### Step 4: Update Production Environment
-
-```bash
-cd ~/apps/HealthNHabits
-
-# Pull latest master changes
-git checkout master
-git pull origin master
-
-# Rebuild production containers (without affecting dev)
-docker rm -f $(docker ps -aq --filter "name=healthnhabits-") 2>/dev/null || true
-docker-compose -f docker-compose.prod.yml up -d --build
-
-# Verify production is running
-docker ps --filter "name=healthnhabits-"
-```
-
-### Step 5: Verify Both Environments Are Running
-
-```bash
-docker ps --format "table {{.Names}}\t{{.Status}}"
-```
-
-You should see both prod and dev containers:
-```
-NAMES                        STATUS
-healthnhabits-nginx          Up (healthy)
-healthnhabits-frontend       Up (healthy)
-healthnhabits-backend        Up (healthy)
-healthnhabits-db             Up (healthy)
-dev-healthnhabits-frontend   Up (healthy)
-dev-healthnhabits-backend    Up (healthy)
-dev-healthnhabits-db         Up (healthy)
-```
-
----
-
-## Port Reference
-
-| Service | Dev Port | Prod Port |
-|---------|----------|-----------|
-| Frontend | 1120 | 1220 (or 80) |
-| Backend | 1110 | 1210 |
-| PostgreSQL | 1130 | 1230 |
-
-See [PORTS.md](PORTS.md) for the complete port registry.
+6.  **Deploy Prod**:
+    *   Merge `dev` to `master` locally and push.
+    *   On VM:
+        ```bash
+        cd ~/apps/HealthNHabits
+        git checkout master
+        git pull origin master
+        docker-compose -f docker-compose.prod.yml up -d --build
+        ```
 
 ---
