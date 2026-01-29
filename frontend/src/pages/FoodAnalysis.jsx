@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { analyzeFood, addFoodEntry, createProduct, getProducts } from '../services/api';
+import { analyzeFood, addFoodEntry, createProduct, getProducts, getLocalDateString } from '../services/api';
 import { Toast } from '../components/ui/UIComponents';
 import { getMealTypeFromTime } from '../utils/getMealTypeFromTime';
 
@@ -260,7 +260,8 @@ export default function FoodAnalysis() {
                 fiber: totals.fiber,
                 portion: totals.portion,
                 unit: 'g',
-                mealType: selectedMealType
+                mealType: selectedMealType,
+                date: getLocalDateString() // Always send user's local date for correct timezone
             });
 
             setToast({ message: `${mealName || 'Meal'} saved!`, type: 'success' });

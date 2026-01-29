@@ -23,51 +23,63 @@ export default function Dashboard() {
     const fetchDashboard = async () => {
         try {
             setLoading(true);
-            // Always fetch the explicit date log to handle timezones correctly
-            // getDateString() uses local client time (e.g. "2026-01-30")
-            // This prevents server (UTC) from returning yesterday's data as "today"
-            const dateStr = getDateString();
-
-            const [dashRes, profileRes, weightRes, logRes] = await Promise.all([
+            const [dashRes, profileRes, weightRes] = await Promise.all([
                 getDashboard(),
                 getProfile(),
-                getWeightHistory(7),
-                getLogByDate(dateStr)
+                getWeightHistory(7)
             ]);
-
-            const apiData = dashRes.data; // General dashboard info
-            const dailyLog = logRes.data; // Specific date's log
-
+            const apiData = dashRes.data;
             setProfile(profileRes.data);
             setWeightHistory(weightRes.data || []);
 
-            // Construct log data from the specific date's response
-            // Fallback to defaults if summary is missing
-            const logData = {
-                ...apiData,
-                calories: {
-                    goal: apiData?.calories?.goal || 2000,
-                    eaten: dailyLog?.summary?.caloriesEaten || 0,
-                    burned: dailyLog?.summary?.caloriesBurned || 0
-                },
-                water: {
-                    current: dailyLog?.summary?.waterIntake || 0,
-                    goal: apiData?.water?.goal || 2000
-                },
-                steps: {
-                    current: dailyLog?.summary?.steps || 0,
-                    goal: apiData?.steps?.goal || 10000
-                },
-                weight: {
-                    current: dailyLog?.summary?.weight || profileRes.data?.weight?.value || 70
-                },
-                macros: {
-                    protein: dailyLog?.summary?.protein || 0,
-                    carbs: dailyLog?.summary?.carbs || 0,
-                    fat: dailyLog?.summary?.fat || 0,
-                    fiber: dailyLog?.summary?.fiber || 0
+            let logData = apiData;
+            if (!isToday()) {
+                try {
+                    const logRes = await getLogByDate(getDateString());
+                    logData = {
+                        ...apiData,
+                        calories: {
+                            goal: apiData.calories.goal,
+                            eaten: logRes.data.summary?.caloriesEaten || 0,
+                            burned: logRes.data.summary?.caloriesBurned || 0
+                        },
+                        water: {
+                            current: logRes.data.summary?.waterIntake || 0,
+                            goal: apiData.water.goal
+                        },
+                        steps: {
+                            current: logRes.data.summary?.steps || 0,
+                            goal: apiData.steps.goal
+                        },
+                        weight: {
+                            current: logRes.data.summary?.weight || profileRes.data?.weight?.value || 70
+                        },
+                        macros: {
+                            protein: logRes.data.summary?.protein || 0,
+                            carbs: logRes.data.summary?.carbs || 0,
+                            fat: logRes.data.summary?.fat || 0,
+                            fiber: logRes.data.summary?.fiber || 0
+                        }
+                    };
+                } catch (e) {
+                    logData = {
+                        ...apiData,
+                        calories: { goal: apiData.calories.goal, eaten: 0, burned: 0 },
+                        water: { current: 0, goal: apiData.water.goal },
+                        steps: { current: 0, goal: apiData.steps.goal },
+                        weight: { current: profileRes.data?.weight?.value || 70 },
+                        macros: { protein: 0, carbs: 0, fat: 0, fiber: 0 }
+                    };
                 }
-            };
+            } else {
+                logData.macros = {
+                    protein: apiData.macros?.protein || 0,
+                    carbs: apiData.macros?.carbs || 0,
+                    fat: apiData.macros?.fat || 0,
+                    fiber: apiData.macros?.fiber || 0
+                };
+                logData.weight = { current: apiData.weight || profileRes.data?.weight?.value || 70 };
+            }
 
             setData({
                 user: { name: profileRes.data?.name || 'User' },

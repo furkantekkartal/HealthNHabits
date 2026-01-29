@@ -53,8 +53,17 @@ export const updateProduct = (id, data) => api.put(`/products/${id}`, data);
 export const deleteProduct = (id) => api.delete(`/products/${id}`);
 export const reorderProducts = (productIds) => api.post('/products/reorder', { productIds });
 
-// Daily Logs
-export const getTodayLog = () => api.get('/logs/today');
+// Helper to get user's local date as YYYY-MM-DD string
+// This ensures we use the user's timezone, not the server's
+export const getLocalDateString = (date = new Date()) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+// Daily Logs - Always send user's local date for timezone consistency
+export const getTodayLog = () => api.get(`/logs/date/${getLocalDateString()}`);
 export const getLogByDate = (date) => api.get(`/logs/date/${date}`);
 export const addFoodEntry = (data) => api.post('/logs/food', data);
 export const addWaterEntry = (amount, date) => api.post('/logs/water', { amount, date });

@@ -1,6 +1,6 @@
 # 🚀 Oracle Cloud VM Setup Guide - HealthNHabits
 
-Complete guide for deploying **HealthNHabits** and **Portfolio** to your Oracle Cloud VM.
+Complete guide for deploying **HealthNHabits** to your Oracle Cloud VM with Cloudflare DNS.
 
 ---
 
@@ -9,13 +9,14 @@ Complete guide for deploying **HealthNHabits** and **Portfolio** to your Oracle 
 - [Part 1: Connect to Your VM](#part-1-connect-to-your-vm)
 - [Part 2: Configure Oracle Cloud Firewall](#part-2-configure-oracle-cloud-firewall)
 - [Part 3: Configure Cloudflare DNS](#part-3-configure-cloudflare-dns)
-- [Part 4: Cleanup Previous Installation](#part-4-cleanup-previous-installation-optional)
+- [Part 4: Backup Before Changes](#part-4-backup-before-changes)
 - [Part 5: Run Initial Setup Script](#part-5-run-initial-setup-script)
 - [Part 6: Configure Environment Variables](#part-6-configure-environment-variables)
-- [Part 7: Start Containers](#part-8-start-containers)
-- [Part 8: Verify Installation](#part-9-verify-installation)
-- [Part 9: Troubleshooting](#part-10-troubleshooting)
-- [Part 10: Updating the Application](#part-11-updating-the-application)
+- [Part 7: Start Containers](#part-7-start-containers)
+- [Part 8: Verify Installation](#part-8-verify-installation)
+- [Part 9: Troubleshooting](#part-9-troubleshooting)
+- [Part 10: Updating the Application](#part-10-updating-the-application)
+- [Port Reference](#port-reference)
 
 ---
 
@@ -58,37 +59,31 @@ Add these **Ingress Rules** in [Oracle Cloud Console](https://cloud.oracle.com) 
 
 ## Part 3: Configure Cloudflare DNS
 
-We use Cloudflare for DNS management (instead of DuckDNS).
+1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/) → Your Domain → DNS → Records
+2. Add these **A records** (all pointing to your VM IP):
 
-1. Log in to [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. Select your domain (`furkantekkartal.com`)
-3. Go to **DNS** → **Records**
-4. Add the following **A records** (ensure Proxy status is **DNS Only** / grey cloud):
+| Type | Name | Content | Proxy |
+|------|------|---------|-------|
+| A | `@` | `149.118.67.133` | DNS only (gray cloud) |
+| A | `www` | `149.118.67.133` | DNS only (gray cloud) |
+| A | `healthnhabits` | `149.118.67.133` | DNS only (gray cloud) |
+| A | `healthnhabits-dev` | `149.118.67.133` | DNS only (gray cloud) |
 
-| Type | Name | Content | Proxy Status |
-|------|------|---------|--------------|
-| A | `@` | `149.118.67.133` | ☁️ DNS Only |
-| A | `www` | `149.118.67.133` | ☁️ DNS Only |
-| A | `healthnhabits` | `149.118.67.133` | ☁️ DNS Only |
-| A | `healthnhabits-dev` | `149.118.67.133` | ☁️ DNS Only |
+> ⚠️ **Important:** Keep Proxy OFF (gray cloud) unless you configure SSL through Cloudflare.
 
-**URLs:**
-- Portfolio: `http://furkantekkartal.com`
-- Production: `http://healthnhabits.furkantekkartal.com`
-- Development: `http://healthnhabits-dev.furkantekkartal.com`
+**Result URLs:**
+- `http://furkantekkartal.com` → Portfolio
+- `http://healthnhabits.furkantekkartal.com` → Production
+- `http://healthnhabits-dev.furkantekkartal.com` → Development
 
 ---
 
-## Part 4: Cleanup Previous Installation (Optional)
+## Part 4: Backup Before Changes
 
-> **Skip this step if this is your first time setting up HealthNHabits.**
-
-### ⚠️ IMPORTANT: Backup Before Cleanup
-
-Before removing anything, **always backup your database and user files** to a safe location outside the project folder:
+Before any major changes, backup your data to a safe location:
 
 ```bash
-# Create a permanent backup folder (outside project directory - never gets deleted)
+# Create a permanent backup folder (outside project directory)
 sudo mkdir -p /home/ubuntu/backups/healthnhabits
 sudo chown ubuntu:ubuntu /home/ubuntu/backups/healthnhabits
 
@@ -99,44 +94,14 @@ mkdir -p /home/ubuntu/backups/healthnhabits/$BACKUP_DATE
 # Backup Production Database
 docker exec healthnhabits-db pg_dump -U healthnhabits -d healthnhabits > /home/ubuntu/backups/healthnhabits/$BACKUP_DATE/prod_database.sql
 
-# Backup Development Database (if exists)
-docker exec dev-healthnhabits-db pg_dump -U healthnhabits -d dev_healthnhabits > /home/ubuntu/backups/healthnhabits/$BACKUP_DATE/dev_database.sql 2>/dev/null || echo "No dev database to backup"
+# Backup Upload Files
+docker cp healthnhabits-backend:/app/uploads /home/ubuntu/backups/healthnhabits/$BACKUP_DATE/prod_uploads 2>/dev/null || echo "No uploads"
 
-# Backup Upload Files (profile pictures, etc.)
-docker cp healthnhabits-backend:/app/uploads /home/ubuntu/backups/healthnhabits/$BACKUP_DATE/prod_uploads 2>/dev/null || echo "No prod uploads to backup"
-docker cp dev-healthnhabits-backend:/app/uploads /home/ubuntu/backups/healthnhabits/$BACKUP_DATE/dev_uploads 2>/dev/null || echo "No dev uploads to backup"
-
-# Verify backup
-echo "✅ Backup created at: /home/ubuntu/backups/healthnhabits/$BACKUP_DATE"
+# Verify
 ls -la /home/ubuntu/backups/healthnhabits/$BACKUP_DATE
 ```
 
-> 📁 **Safe Location:** `/home/ubuntu/backups/` is outside the project folder and will NOT be deleted when you remove the project.
-
-### Cleanup Commands
-
-After backup is complete, you can safely cleanup:
-
-```bash
-cd ~/apps/HealthNHabits
-
-# Stop only this project's containers (does NOT affect other projects)
-docker-compose -f docker-compose.prod.yml down 2>/dev/null || true
-docker-compose -f docker-compose-dev.yml down 2>/dev/null || true
-
-# Remove only this project's images (optional, saves disk space)
-docker images | grep healthnhabits | awk '{print $3}' | xargs -r docker rmi -f
-```
-
-### Restore from Backup (If Needed)
-
-```bash
-# Restore database from backup
-cat /home/ubuntu/backups/healthnhabits/YYYYMMDD_HHMMSS/prod_database.sql | docker exec -i healthnhabits-db psql -U healthnhabits -d healthnhabits
-
-# Restore upload files
-docker cp /home/ubuntu/backups/healthnhabits/YYYYMMDD_HHMMSS/prod_uploads/. healthnhabits-backend:/app/uploads/
-```
+> 📁 **Safe Location:** `/home/ubuntu/backups/` is outside the project folder and won't be deleted.
 
 ---
 
@@ -145,7 +110,7 @@ docker cp /home/ubuntu/backups/healthnhabits/YYYYMMDD_HHMMSS/prod_uploads/. heal
 This script automatically:
 - Updates system packages
 - Installs Docker and Git
-- Configures iptables firewall (ports 80, 443, 1110, 1120, 1130, 1210, 1220, 1230)
+- Configures iptables firewall
 - Clones the repository to `~/apps/HealthNHabits`
 - Creates `.env` file from template
 
@@ -177,50 +142,60 @@ GEMINI_API_KEY=your_gemini_api_key
 
 ## Part 7: Start Containers
 
-Nginx handles routing based on subdomains (`healthnhabits-dev`, `healthnhabits`, `www`).
-For this to work, **Dev environment MUST be started first** to create the network, then Prod connects to it.
+> ⚠️ **IMPORTANT:** Start DEV first (creates network), then PROD (connects to dev network for subdomain routing).
 
+### Step 1: Start Development
 ```bash
 cd ~/apps/HealthNHabits
-
-# 1. Start Development Environment (Creates internal network)
 docker-compose -f docker-compose-dev.yml up -d --build
+```
 
-# 2. Start Production Environment (Connects to dev network for routing)
+### Step 2: Start Production
+```bash
 docker-compose -f docker-compose.prod.yml up -d --build
+```
 
-# 3. Verify All Containers
+### Verify Both Running
+```bash
 docker ps --format "table {{.Names}}\t{{.Status}}"
 ```
 
-### Stop Environments
-
-**Stop Everything:**
-```bash
-docker-compose -f docker-compose.prod.yml down
-docker-compose -f docker-compose-dev.yml down
+Expected output:
+```
+NAMES                        STATUS
+healthnhabits-nginx          Up (healthy)
+healthnhabits-frontend       Up (healthy)
+healthnhabits-backend        Up (healthy)
+healthnhabits-db             Up (healthy)
+dev-healthnhabits-nginx      Up (healthy)
+dev-healthnhabits-frontend   Up (healthy)
+dev-healthnhabits-backend    Up (healthy)
+dev-healthnhabits-db         Up (healthy)
 ```
 
 ---
 
 ## Part 8: Verify Installation
 
-Visit the URLs in your browser:
+### Check Subdomains
+```bash
+curl -I http://furkantekkartal.com
+curl -I http://healthnhabits.furkantekkartal.com
+curl -I http://healthnhabits-dev.furkantekkartal.com
+```
 
-1. **Portfolio:** `http://furkantekkartal.com`
-2. **Production App:** `http://healthnhabits.furkantekkartal.com`
-3. **Development App:** `http://healthnhabits-dev.furkantekkartal.com`
+All should return `HTTP/1.1 200 OK`.
 
 ### Check Container Logs
 ```bash
-# Nginx / Router Logs
-docker logs healthnhabits-nginx --tail 50
+docker logs healthnhabits-backend --tail 20
+docker logs dev-healthnhabits-backend --tail 20
+```
 
-# Production Backend Logs
-docker logs healthnhabits-backend --tail 50
-
-# Development Backend Logs
-docker logs dev-healthnhabits-backend --tail 50
+### Check Health Endpoints
+```bash
+curl http://localhost:1210/api/health  # Production
+curl http://localhost:1110/api/health  # Development
 ```
 
 ---
@@ -229,65 +204,92 @@ docker logs dev-healthnhabits-backend --tail 50
 
 ### Fix: Docker-Compose "ContainerConfig" Error
 
-If you see `KeyError: 'ContainerConfig'` when running `docker-compose up`, use these commands:
+If you see `KeyError: 'ContainerConfig'`:
 
 ```bash
-# Force remove and restart DEV
-docker rm -f $(docker ps -aq --filter "name=dev-healthnhabits") 2>/dev/null || true
-docker-compose -f docker-compose-dev.yml up -d --build
+# Force remove containers
+docker rm -f $(docker ps -aq --filter "name=healthnhabits") 2>/dev/null || true
 
-# Force remove and restart PROD
-docker rm -f $(docker ps -aq --filter "name=healthnhabits-") 2>/dev/null || true
+# Start again
+docker-compose -f docker-compose-dev.yml up -d --build
 docker-compose -f docker-compose.prod.yml up -d --build
 ```
 
-### Fix: Dev Subdomain "502 Bad Gateway"
+### Dev Subdomain Returns 502
 
-If `healthnhabits-dev.furkantekkartal.com` returns 502:
-1. Ensure Dev containers are running: `docker ps | grep dev-`
-2. Ensure Prod Nginx is connected to `healthnhabits_dev-network`:
-   ```bash
-   docker network inspect healthnhabits_dev-network | grep healthnhabits-nginx
-   ```
-3. Restart Nginx:
-   ```bash
-   docker restart healthnhabits-nginx
-   ```
+Dev containers might not be running:
+```bash
+docker-compose -f docker-compose-dev.yml up -d
+```
+
+### Clean Up Disk Space
+```bash
+docker system prune -af
+```
 
 ---
 
 ## Part 10: Updating the Application
 
-### Development Workflow
+### Workflow: Dev → Test → Push to Master → Deploy Prod
 
-1.  **Code**: Make changes locally on `dev` branch.
-2.  **Push**: `git push origin dev`
-3.  **Deploy Dev**:
-    ```bash
-    cd ~/apps/HealthNHabits
-    git pull origin dev
-    docker-compose -f docker-compose-dev.yml up -d --build
-    ```
-4.  **Test**: Verified at `http://healthnhabits-dev.furkantekkartal.com`
+#### Step 1: Clone Production Data (Before Changes)
+```bash
+cd ~/apps/HealthNHabits
+bash scripts/clone-prod-to-dev.sh
+```
 
-5.  **Sync Data (Optional)**: If you need fresh prod data in dev:
-    ```bash
-    bash scripts/clone-prod-to-dev.sh
-    ```
-    This script automatically:
-    - Exports production database
-    - Imports it into development database
-    - Copies all upload files (profile images, etc.) to development
-    *Note: Both environments must be running for this to work.*
+#### Step 2: Pull & Deploy Dev Changes
+```bash
+git fetch origin
+git checkout dev
+git pull origin dev
 
-6.  **Deploy Prod**:
-    *   Merge `dev` to `master` locally and push.
-    *   On VM:
-        ```bash
-        cd ~/apps/HealthNHabits
-        git checkout master
-        git pull origin master
-        docker-compose -f docker-compose.prod.yml up -d --build
-        ```
+# Rebuild dev
+docker rm -f $(docker ps -aq --filter "name=dev-healthnhabits") 2>/dev/null || true
+docker-compose -f docker-compose-dev.yml up -d --build
+```
+
+Test at: `http://healthnhabits-dev.furkantekkartal.com`
+
+#### Step 3: Push Dev to Master (on your local IDE)
+```bash
+git checkout master
+git merge dev
+git push origin master
+```
+
+#### Step 4: Deploy Production
+```bash
+cd ~/apps/HealthNHabits
+git checkout master
+git pull origin master
+
+# Rebuild prod
+docker rm -f $(docker ps -aq --filter "name=healthnhabits-") 2>/dev/null || true
+docker-compose -f docker-compose.prod.yml up -d --build
+```
+
+#### Step 5: Verify Both Running
+```bash
+docker ps --format "table {{.Names}}\t{{.Status}}"
+```
+
+---
+
+## Port Reference
+
+| Service | Dev Port | Prod Port |
+|---------|----------|-----------|
+| Frontend | 1120 | 80 (via nginx) |
+| Backend | 1110 | 1210 |
+| PostgreSQL | 1130 | 1230 |
+
+**Subdomains:**
+| URL | Environment |
+|-----|-------------|
+| `furkantekkartal.com` | Portfolio |
+| `healthnhabits.furkantekkartal.com` | Production |
+| `healthnhabits-dev.furkantekkartal.com` | Development |
 
 ---

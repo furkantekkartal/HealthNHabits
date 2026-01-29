@@ -88,7 +88,7 @@ export default function Catalog() {
                 portion: product.servingSize?.value || 1,
                 unit: product.servingSize?.unit || 'g',
                 mealType: selectedMealType,
-                date: isToday() ? undefined : getDateString()
+                date: getDateString() // Always send user's local date for correct timezone
             });
             setToast({ message: `${product.name} added to ${selectedMealType}!`, type: 'success' });
         } catch (err) {
