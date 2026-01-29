@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Furkan Tekkartal - Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 60px 0;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 48px;
+            font-weight: 700;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff 0%, #a8a8a8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        /* Projects Section */
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 32px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            animation: fadeInUp 0.8s ease-out 0.3s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .project-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 28px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #13ec13 0%, #0fd60f 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(19, 236, 19, 0.3);
+        }
+
+        .project-card:hover::before {
+            opacity: 1;
+        }
+
+        .project-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #13ec13 0%, #0fd60f 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .project-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .project-desc {
+            color: #888;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 12px;
+        }
+
+        .project-link {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .project-link.primary {
+            background: linear-gradient(135deg, #13ec13 0%, #0fd60f 100%);
+            color: #000;
+        }
+
+        .project-link.primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(19, 236, 19, 0.4);
+        }
+
+        .project-link.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .project-link.secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+
+        .badge.dev {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
+        .badge.prod {
+            background: rgba(19, 236, 19, 0.2);
+            color: #13ec13;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 60px 0 40px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Coming Soon Card */
+        .project-card.coming-soon {
+            opacity: 0.6;
+            cursor: default;
+        }
+
+        .project-card.coming-soon:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .coming-soon-badge {
+            background: rgba(255, 255, 255, 0.1);
+            color: #888;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="avatar">FT</div>
+            <h1>Furkan Tekkartal</h1>
+            <p class="subtitle">Full Stack Developer • Melbourne, Australia</p>
+        </header>
+
+        <section>
+            <h2 class="section-title">My Projects</h2>
+            
+            <div class="projects-grid">
+                <!-- HealthNHabits -->
+                <div class="project-card" onclick="window.location.href='https://healthnhabits.furkantekkartal.com'">
+                    <div class="project-icon">⚡</div>
+                    <h3 class="project-title">
+                        HealthNHabits
+                        <span class="badge prod">Production</span>
+                    </h3>
+                    <p class="project-desc">
+                        Personal health tracking app with AI-powered food analysis, calorie counting, 
+                        hydration tracking, step monitoring, and weight management.
+                    </p>
+                    <div class="project-links">
+                        <a href="https://healthnhabits.furkantekkartal.com" class="project-link primary">Open App</a>
+                        <a href="https://healthnhabits-dev.furkantekkartal.com" class="project-link secondary">Dev Version</a>
+                    </div>
+                </div>
+
+                <!-- Coming Soon -->
+                <div class="project-card coming-soon">
+                    <div class="project-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">🚀</div>
+                    <h3 class="project-title">More Coming Soon</h3>
+                    <p class="project-desc">
+                        New projects are in development. Stay tuned for exciting updates!
+                    </p>
+                    <span class="coming-soon-badge">Coming Soon</span>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>© 2024 Furkan Tekkartal • <a href="https://github.com/furkantekkartal" target="_blank">GitHub</a></p>
+        </footer>
+    </div>
+</body>
+</html>
