@@ -147,11 +147,17 @@ docker-compose -f docker-compose-dev.yml up -d --build
 
 Production and Development use different ports and container names, so they can run simultaneously.
 
+> **⚠️ Important**: Do NOT use `--remove-orphans` when running both environments. It will delete the other environment's containers!
+
 ```bash
-docker-compose -f docker-compose.prod.yml down --remove-orphans
+# Start Production (without --remove-orphans)
 docker-compose -f docker-compose.prod.yml up -d --build
-docker-compose -f docker-compose-dev.yml down --remove-orphans
+
+# Start Development (without --remove-orphans)
 docker-compose -f docker-compose-dev.yml up -d --build
+
+# Verify both are running
+docker ps --format "table {{.Names}}\t{{.Status}}"
 ```
 
 | Environment | Frontend | Backend |
@@ -163,8 +169,8 @@ docker-compose -f docker-compose-dev.yml up -d --build
 
 **Stop environments:**
 ```bash
-docker-compose -f docker-compose-dev.yml down      # Stop Dev
-docker-compose -f docker-compose.prod.yml down # Stop Prod
+docker-compose -f docker-compose-dev.yml down      # Stop Dev only
+docker-compose -f docker-compose.prod.yml down     # Stop Prod only
 ```
 
 ---
