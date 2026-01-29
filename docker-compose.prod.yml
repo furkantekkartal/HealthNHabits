@@ -91,6 +91,7 @@ services:
       - backend
     networks:
       - healthnhabits-network
+      - dev-network
 
   # Certbot for SSL certificates (optional - not needed if using Cloudflare proxy)
   certbot:
@@ -106,6 +107,9 @@ services:
 networks:
   healthnhabits-network:
     driver: bridge
+  dev-network:
+    external: true
+    name: healthnhabits_dev-network
 
 volumes:
   postgres_data:
