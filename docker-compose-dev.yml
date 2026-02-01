@@ -1,10 +1,10 @@
-# HealthNHabits Docker Compose - DEVELOPMENT
+# HealthNHabits Docker Compose - DEVELOPMENT (Project ID 2)
 # This can run ALONGSIDE production on the same machine
 
 version: '3.8'
 
 services:
-  # Dev Database (Prefix: dev-)
+  # Dev Database (Port 2130)
   dev-postgres:
     image: postgres:16-alpine
     container_name: dev-healthnhabits-db
@@ -16,13 +16,13 @@ services:
     volumes:
       - dev_postgres_data:/var/lib/postgresql/data
     ports:
-      - "1130:5432" # Dev Database external access
+      - "2130:5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-healthnhabits}" ]
     networks:
       - dev-network
 
-  # Dev Backend (Prefix: dev-)
+  # Dev Backend (Port 2110)
   dev-backend:
     build:
       context: ./backend
@@ -31,7 +31,7 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: development
-      PORT: 5050 # Runs on 5050
+      PORT: 5050
       DB_NAME: dev_healthnhabits
       DB_USER: ${POSTGRES_USER:-healthnhabits}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-healthnhabits_dev}
@@ -43,14 +43,14 @@ services:
     volumes:
       - dev_backend_uploads:/app/uploads
     ports:
-      - "1110:5050" # Access dev API at http://ip:1110
+      - "2110:5050"
     depends_on:
       dev-postgres:
         condition: service_healthy
     networks:
       - dev-network
 
-  # Dev Frontend (Prefix: dev-)
+  # Dev Frontend (Port 2120)
   dev-frontend:
     build:
       context: ./frontend
@@ -59,25 +59,12 @@ services:
         VITE_API_URL: /api
     container_name: dev-healthnhabits-frontend
     restart: unless-stopped
-    networks:
-      - dev-network
-    depends_on:
-      - dev-backend
-
-  # Dev Nginx Reverse Proxy
-  dev-nginx:
-    image: nginx:alpine
-    container_name: dev-healthnhabits-nginx
-    restart: unless-stopped
     ports:
-      - "1120:80"
-    volumes:
-      - ./nginx/dev-nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      - dev-frontend
-      - dev-backend
+      - "2120:80"
     networks:
       - dev-network
+    depends_on:
+      - dev-backend
 
 networks:
   dev-network:

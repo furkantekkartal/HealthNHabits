@@ -10,26 +10,23 @@ Schema: `[Project#][Env][Service][0]`
 
 ---
 
-## 1. HealthNHabits
+## 1. FTcom (Portfolio - Primary Gateway)
 
 | Environment | Service | Port | Internal Container Port | URL |
 |-------------|---------|------|-------------------------|-----|
-| **Dev** | Backend | **1110** | 5050 | `http://IP:1110` |
 | **Dev** | Frontend | **1120** | 80 | `http://IP:1120` |
-| **Dev** | Database | **1130** | 5432 | PostgreSQL |
-| **Prod** | Backend | **1210** | 5000 | `http://IP:1210` |
-| **Prod** | Frontend | **1220** | 80 (Nginx) | `http://IP:1220` |
-| **Prod** | Database | **1230** | 5432 | PostgreSQL |
+| **Prod** | Frontend | **80/443** | 80 | `http://furkantekkartal.com` |
+| **Prod** | Shared | **1220** | 80 | `http://IP:1220` (Direct) |
 
 ---
 
-## 2. HomeMadeKahoot
+## 2. HealthNHabits (Secondary App)
 
 | Environment | Service | Port | Internal Container Port | URL |
 |-------------|---------|------|-------------------------|-----|
-| **Dev** | Backend | **2110** | ... | `http://IP:2110` |
-| **Dev** | Frontend | **2120** | ... | `http://IP:2120` |
-| **Dev** | Database | **2130** | ... | PostgreSQL |
-| **Prod** | Backend | **2210** | ... | `http://IP:2210` |
-| **Prod** | Frontend | **2220** | ... | `http://IP:2220` |
-| **Prod** | Database | **2230** | ... | PostgreSQL |
+| **Dev** | Backend | **2110** | 5050 | `http://IP:2110` |
+| **Dev** | Frontend | **2120** | 80 | `http://IP:2120` |
+| **Dev** | Database | **2130** | 5432 | PostgreSQL |
+| **Prod** | Backend | **2210** | 5000 | `http://IP:2210` |
+| **Prod** | Frontend | **2220** | 80 | `http://IP:2220` |
+| **Prod** | Database | **2230** | 5432 | PostgreSQL |
