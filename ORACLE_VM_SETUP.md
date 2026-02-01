@@ -15,8 +15,8 @@ Run these on the VM **BEFORE** erasing old folders:
 mkdir -p ~/backups/hnh_$(date +%Y%m%d)
 # Backup DB
 docker exec healthnhabits-db pg_dump -U healthnhabits -d healthnhabits > ~/backups/hnh_$(date +%Y%m%d)/db_backup.sql
-# Backup Uploads
-cp -r ~/apps/HealthNHabits/backend/uploads ~/backups/hnh_$(date +%Y%m%d)/
+# Backup Uploads (from Docker volume)
+docker cp healthnhabits-backend:/app/uploads ~/backups/hnh_$(date +%Y%m%d)/
 ```
 
 ### 2. Erase & Clean
