@@ -282,78 +282,42 @@ docker ps --format "table {{.Names}}\t{{.Status}}"
 
 ---
 
-## Part 11: Fresh Start (Clean Migration)
+## Part 11: Backup & Restore
 
-Use this if you need to completely remove and redeploy HealthNHabbits without losing data.
-
-### Step 1: Backup Critical Data
-```bash
-# Create timestamped backup folder
-BACKUP_DATE=$(date +%Y%m%d_%H%M%S)
-mkdir -p ~/backups/hnh_fresh_start_$BACKUP_DATE
-
-# Backup .env file
-cp ~/apps/HealthNHabits/.env ~/backups/hnh_fresh_start_$BACKUP_DATE/
-
-# Backup Production Database
-docker exec healthnhabits-db pg_dump -U healthnhabits -d healthnhabits > ~/backups/hnh_fresh_start_$BACKUP_DATE/database_prod.sql
-
-# Backup Dev Database (if exists)
-docker exec dev-healthnhabits-db pg_dump -U healthnhabits -d dev_healthnhabits > ~/backups/hnh_fresh_start_$BACKUP_DATE/database_dev.sql 2>/dev/null || echo "Dev DB not found"
-
-# Backup Upload Files
-docker cp healthnhabits-backend:/app/uploads ~/backups/hnh_fresh_start_$BACKUP_DATE/uploads_prod 2>/dev/null || echo "No prod uploads"
-docker cp dev-healthnhabits-backend:/app/uploads ~/backups/hnh_fresh_start_$BACKUP_DATE/uploads_dev 2>/dev/null || echo "No dev uploads"
-
-# Verify backup
-ls -lh ~/backups/hnh_fresh_start_$BACKUP_DATE/
-```
-
-### Step 2: Complete Cleanup
+### Quick Backup (Recommended)
 ```bash
 cd ~/apps/HealthNHabits
-
-# Stop and remove all containers, volumes, and networks
-docker-compose -f docker-compose.prod.yml down --volumes --remove-orphans
-docker-compose -f docker-compose-dev.yml down --volumes --remove-orphans
-
-# Optional: Remove the project folder (if doing a clean clone)
-cd ~
-rm -rf ~/apps/HealthNHabits
+bash scripts/backup.sh
 ```
 
-### Step 3: Fresh Deployment
+This creates a complete backup including:
+- `.env` configuration
+- Production & Dev databases
+- All upload files (images, analyzed images, profiles)
+
+**Backup location**: `~/backups/healthnhabits/YYYYMMDD_HHMMSS/`
+
+### Restore from Backup
 ```bash
-# Clone fresh (if you removed the folder)
-git clone https://github.com/furkantekkartal/HealthNHabits.git ~/apps/HealthNHabits
-cd ~/apps/HealthNHabits
+# List available backups
+ls -lh ~/backups/healthnhabits/
 
-# Restore .env
-cp ~/backups/hnh_fresh_start_$BACKUP_DATE/.env .
-
-# Start services
-docker-compose -f docker-compose.prod.yml up -d --build
-docker-compose -f docker-compose-dev.yml up -d --build
+# Restore specific backup (replace TIMESTAMP with folder name)
+bash ~/apps/HealthNHabits/scripts/restore-backup.sh TIMESTAMP
 ```
 
-### Step 4: Restore Data
+Example:
 ```bash
-# Wait for containers to be healthy
-sleep 10
+bash ~/apps/HealthNHabits/scripts/restore-backup.sh 20260202_180000
+```
 
-# Restore Production Database
-cat ~/backups/hnh_fresh_start_$BACKUP_DATE/database_prod.sql | docker exec -i healthnhabits-db psql -U healthnhabits -d healthnhabits
+### Automated Daily Backups
+```bash
+# Add to crontab for daily backup at 3 AM
+crontab -e
 
-# Restore Dev Database
-cat ~/backups/hnh_fresh_start_$BACKUP_DATE/database_dev.sql | docker exec -i dev-healthnhabits-db psql -U healthnhabits -d dev_healthnhabits 2>/dev/null || echo "Skipping dev DB restore"
-
-# Restore Uploads (copy back into container)
-docker cp ~/backups/hnh_fresh_start_$BACKUP_DATE/uploads_prod/. healthnhabits-backend:/app/uploads/ 2>/dev/null || echo "No prod uploads to restore"
-docker cp ~/backups/hnh_fresh_start_$BACKUP_DATE/uploads_dev/. dev-healthnhabits-backend:/app/uploads/ 2>/dev/null || echo "No dev uploads to restore"
-
-# Verify
-docker ps --format "table {{.Names}}\t{{.Status}}"
-curl -I http://healthnhabits.furkantekkartal.com
+# Add this line:
+0 3 * * * cd ~/apps/HealthNHabits && bash scripts/backup.sh >> ~/backups/backup.log 2>&1
 ```
 
 ---
