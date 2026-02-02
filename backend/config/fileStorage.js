@@ -68,17 +68,20 @@ const uploadForAnalysis = multer({
     limits: { fileSize: 10 * 1024 * 1024 }
 });
 
-// Helper to get full URL for a file path
+// Helper to get relative URL for a file path
 const getFileUrl = (req, filePath) => {
     if (!filePath) return null;
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
+
     // If it's already a full URL, return it
     if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
         return filePath;
     }
+
     // Convert backslashes to forward slashes for URL
     const normalizedPath = filePath.replace(/\\/g, '/');
-    return `${baseUrl}/${normalizedPath}`;
+
+    // Ensure it starts with a leading slash for relative URL from root
+    return normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
 };
 
 // Helper to save base64 image to disk

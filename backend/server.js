@@ -17,6 +17,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
+// Trust proxy for correct protocol (HTTPS) and IP behind Nginx/Cloudflare
+app.set('trust proxy', true);
+
 console.log(`🔧 Environment: ${nodeEnv}`);
 console.log(`📄 Loading config from: ${envFile}`);
 
