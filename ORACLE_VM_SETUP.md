@@ -29,6 +29,10 @@ Complete guide for deploying **HealthNHabits** to your Oracle Cloud VM with Clou
 | Domain | `furkantekkartal.com` |
 | SSH User | `ubuntu` |
 
+> [!WARNING]
+> **FTcom Gateway Must Be Running First!**
+> This project requires the **FTcom** gateway (Project ID 1) to be deployed and running on Port 80. If you haven't deployed FTcom yet, do that first by following its `ORACLE_VM_SETUP.md`.
+
 ---
 
 ## Part 1: Connect to Your VM
@@ -46,12 +50,15 @@ Add these **Ingress Rules** in [Oracle Cloud Console](https://cloud.oracle.com) 
 
 | Source CIDR | Protocol | Port | Description |
 |-------------|----------|------|-------------|
-| `0.0.0.0/0` | TCP | 2110 | Dev Backend |
-| `0.0.0.0/0` | TCP | 2120 | Dev Frontend |
-| `0.0.0.0/0` | TCP | 2130 | Dev Database |
-| `0.0.0.0/0` | TCP | 2210 | Prod Backend |
-| `0.0.0.0/0` | TCP | 2220 | Prod Frontend |
-| `0.0.0.0/0` | TCP | 2230 | Prod Database |
+| `0.0.0.0/0` | TCP | 2110 | Dev Backend (Project ID 2) |
+| `0.0.0.0/0` | TCP | 2120 | Dev Frontend (Project ID 2) |
+| `0.0.0.0/0` | TCP | 2130 | Dev Database (Project ID 2) |
+| `0.0.0.0/0` | TCP | 2210 | Prod Backend (Project ID 2) |
+| `0.0.0.0/0` | TCP | 2220 | Prod Frontend (Project ID 2) |
+| `0.0.0.0/0` | TCP | 2230 | Prod Database (Project ID 2) |
+
+> [!NOTE]
+> Ports 80 and 443 are managed by **FTcom** (Project ID 1). HealthNHabbits is accessed via subdomains that FTcom proxies to Port 2220.
 
 ---
 
@@ -70,35 +77,36 @@ Add these **Ingress Rules** in [Oracle Cloud Console](https://cloud.oracle.com) 
 > ⚠️ **Important:** Keep Proxy OFF (gray cloud) unless you configure SSL through Cloudflare.
 
 **Result URLs:**
-- `http://furkantekkartal.com` → Portfolio
-- `http://healthnhabits.furkantekkartal.com` → Production (Port 2220)
-- `http://healthnhabits-dev.furkantekkartal.com` → Development (Port 2120)
+- `http://furkantekkartal.com` → Portfolio (FTcom Project)
+- `http://healthnhabits.furkantekkartal.com` → Production (Proxied to Port 2220)
+- `http://healthnhabits-dev.furkantekkartal.com` → Development (Proxied to Port 2120)
 
 ---
 
-## Part 4: Backup & Restore
+## Part 4: Backup Before Changes
 
-### 1. Backup Existing Data (On VM)
-Run these inside your old project folder **BEFORE** erasing it:
+Before any major changes, backup your data to a safe location:
+
 ```bash
-# Create migration folder
-mkdir -p ~/migration_backups
-BACKUP_DIR=~/migration_backups
+# Create a permanent backup folder (outside project directory)
+sudo mkdir -p /home/ubuntu/backups/healthnhabits
+sudo chown ubuntu:ubuntu /home/ubuntu/backups/healthnhabits
 
-# Backup Database
-docker exec healthnhabits-db pg_dump -U healthnhabits -d healthnhabits > $BACKUP_DIR/db_prod.sql
+# Create timestamped backup
+BACKUP_DATE=$(date +%Y%m%d_%H%M%S)
+mkdir -p /home/ubuntu/backups/healthnhabits/$BACKUP_DATE
 
-# Backup User Uploads (from Docker Volume)
-docker cp healthnhabits-backend:/app/uploads $BACKUP_DIR/
+# Backup Production Database
+docker exec healthnhabits-db pg_dump -U healthnhabits -d healthnhabits > /home/ubuntu/backups/healthnhabits/$BACKUP_DATE/prod_database.sql
+
+# Backup Upload Files (from Docker volume)
+docker cp healthnhabits-backend:/app/uploads /home/ubuntu/backups/healthnhabits/$BACKUP_DATE/prod_uploads 2>/dev/null || echo "No uploads found"
+
+# Verify
+ls -la /home/ubuntu/backups/healthnhabits/$BACKUP_DATE
 ```
 
-### 2. Restore Data (To New Project)
-Run these **AFTER** starting the new containers (Part 7):
-```bash
-# Restore Database
-cat ~/migration_backups/db_prod.sql | docker exec -i healthnhabits-db psql -U healthnhabits -d healthnhabits
-```
-
+> 📁 **Safe Location:** `/home/ubuntu/backups/` is outside the project folder and won't be deleted.
 
 ---
 
@@ -174,14 +182,14 @@ dev-healthnhabits-db         Up (healthy)
 
 ## Part 8: Verify Installation
 
-### Check Subdomains
+### Check Subdomains (Via FTcom Gateway)
 ```bash
-curl -I http://furkantekkartal.com
-curl -I http://healthnhabits.furkantekkartal.com
-curl -I http://healthnhabits-dev.furkantekkartal.com
+curl -I http://furkantekkartal.com  # Should show portfolio
+curl -I http://healthnhabits.furkantekkartal.com  # Should now return 200 OK
+curl -I http://healthnhabits-dev.furkantekkartal.com  # Should now return 200 OK
 ```
 
-All should return `HTTP/1.1 200 OK`.
+All should return `HTTP/1.1 200 OK` if both FTcom and HealthNHabbits are running.
 
 ### Check Container Logs
 ```bash
@@ -191,8 +199,8 @@ docker logs dev-healthnhabits-backend --tail 20
 
 ### Check Health Endpoints
 ```bash
-curl http://localhost:2210/api/health  # Production
-curl http://localhost:2110/api/health  # Development
+curl http://localhost:2210/api/health  # Production Backend
+curl http://localhost:2110/api/health  # Development Backend
 ```
 
 ---
@@ -274,13 +282,89 @@ docker ps --format "table {{.Names}}\t{{.Status}}"
 
 ---
 
+## Part 11: Fresh Start (Clean Migration)
+
+Use this if you need to completely remove and redeploy HealthNHabbits without losing data.
+
+### Step 1: Backup Critical Data
+```bash
+# Create timestamped backup folder
+BACKUP_DATE=$(date +%Y%m%d_%H%M%S)
+mkdir -p ~/backups/hnh_fresh_start_$BACKUP_DATE
+
+# Backup .env file
+cp ~/apps/HealthNHabits/.env ~/backups/hnh_fresh_start_$BACKUP_DATE/
+
+# Backup Production Database
+docker exec healthnhabits-db pg_dump -U healthnhabits -d healthnhabits > ~/backups/hnh_fresh_start_$BACKUP_DATE/database_prod.sql
+
+# Backup Dev Database (if exists)
+docker exec dev-healthnhabits-db pg_dump -U healthnhabits -d dev_healthnhabits > ~/backups/hnh_fresh_start_$BACKUP_DATE/database_dev.sql 2>/dev/null || echo "Dev DB not found"
+
+# Backup Upload Files
+docker cp healthnhabits-backend:/app/uploads ~/backups/hnh_fresh_start_$BACKUP_DATE/uploads_prod 2>/dev/null || echo "No prod uploads"
+docker cp dev-healthnhabits-backend:/app/uploads ~/backups/hnh_fresh_start_$BACKUP_DATE/uploads_dev 2>/dev/null || echo "No dev uploads"
+
+# Verify backup
+ls -lh ~/backups/hnh_fresh_start_$BACKUP_DATE/
+```
+
+### Step 2: Complete Cleanup
+```bash
+cd ~/apps/HealthNHabits
+
+# Stop and remove all containers, volumes, and networks
+docker-compose -f docker-compose.prod.yml down --volumes --remove-orphans
+docker-compose -f docker-compose-dev.yml down --volumes --remove-orphans
+
+# Optional: Remove the project folder (if doing a clean clone)
+cd ~
+rm -rf ~/apps/HealthNHabits
+```
+
+### Step 3: Fresh Deployment
+```bash
+# Clone fresh (if you removed the folder)
+git clone https://github.com/furkantekkartal/HealthNHabits.git ~/apps/HealthNHabits
+cd ~/apps/HealthNHabits
+
+# Restore .env
+cp ~/backups/hnh_fresh_start_$BACKUP_DATE/.env .
+
+# Start services
+docker-compose -f docker-compose.prod.yml up -d --build
+docker-compose -f docker-compose-dev.yml up -d --build
+```
+
+### Step 4: Restore Data
+```bash
+# Wait for containers to be healthy
+sleep 10
+
+# Restore Production Database
+cat ~/backups/hnh_fresh_start_$BACKUP_DATE/database_prod.sql | docker exec -i healthnhabits-db psql -U healthnhabits -d healthnhabits
+
+# Restore Dev Database
+cat ~/backups/hnh_fresh_start_$BACKUP_DATE/database_dev.sql | docker exec -i dev-healthnhabits-db psql -U healthnhabits -d dev_healthnhabits 2>/dev/null || echo "Skipping dev DB restore"
+
+# Restore Uploads (copy back into container)
+docker cp ~/backups/hnh_fresh_start_$BACKUP_DATE/uploads_prod/. healthnhabits-backend:/app/uploads/ 2>/dev/null || echo "No prod uploads to restore"
+docker cp ~/backups/hnh_fresh_start_$BACKUP_DATE/uploads_dev/. dev-healthnhabits-backend:/app/uploads/ 2>/dev/null || echo "No dev uploads to restore"
+
+# Verify
+docker ps --format "table {{.Names}}\t{{.Status}}"
+curl -I http://healthnhabits.furkantekkartal.com
+```
+
+---
+
 ## Port Reference
 
-| Service | Dev Port | Prod Port |
-|---------|----------|-----------|
-| Frontend | 2120 | 2220 |
-| Backend | 2110 | 2210 |
-| PostgreSQL | 2130 | 2230 |
+| Service | Dev Port | Prod Port | Notes |
+|---------|----------|-----------|-------|
+| Frontend | **2120** | **2220** | Accessed via FTcom Gateway on Port 80 |
+| Backend | **2110** | **2210** | Direct API access |
+| PostgreSQL | **2130** | **2230** | Internal only |
 
 **Subdomains:**
 | URL | Environment |
