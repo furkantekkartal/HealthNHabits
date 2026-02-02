@@ -50,11 +50,10 @@ services:
     networks:
       - dev-network
 
-  # Dev Frontend (Port 2120)
   dev-frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
       args:
         VITE_API_URL: /api
     container_name: dev-healthnhabits-frontend
