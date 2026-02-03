@@ -417,9 +417,6 @@ export default function EditProduct() {
                     return;
                 }
 
-                await createProduct(productData);
-                setToast({ message: 'Product created!', type: 'success' });
-
                 // If coming from analyze page (adding new item), add product to detected items
                 if (returnTo === '/analyze') {
                     const existingState = sessionStorage.getItem('foodAnalysisState');
@@ -453,6 +450,7 @@ export default function EditProduct() {
                     }
                     // Clear the returnTo from sessionStorage
                     sessionStorage.removeItem('editProductReturnTo');
+                    setToast({ message: 'Item added!', type: 'success' });
                     setTimeout(() => navigate('/analyze'), 1000);
                     return;
                 }
@@ -478,9 +476,13 @@ export default function EditProduct() {
                     };
                     sessionStorage.setItem('productDetailNewItem', JSON.stringify(newItem));
                     sessionStorage.removeItem('editProductReturnTo');
+                    setToast({ message: 'Item added!', type: 'success' });
                     setTimeout(() => navigate(returnTo), 1000);
                     return;
                 }
+
+                await createProduct(productData);
+                setToast({ message: 'Product created!', type: 'success' });
             } else {
                 await updateProduct(id, productData);
                 setToast({ message: 'Product updated!', type: 'success' });
