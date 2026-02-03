@@ -303,9 +303,6 @@ git push origin dev
 ### Step 2: Pull and Test on Dev (on the server)
 
 ```bash
-# SSH to server
-ssh ubuntu@YOUR_SERVER_IP
-
 # Navigate to project
 cd ~/apps/HealthNHabits  # or HomeMadeKahoot, FTcom, etc.
 
@@ -337,12 +334,6 @@ Only after verifying dev works correctly:
 git checkout master
 git merge dev
 git push origin master
-
-# OR: On the server, merge directly
-cd ~/apps/HealthNHabits
-git checkout master
-git pull origin master  # or: git merge dev
-```
 
 ---
 

@@ -196,16 +196,35 @@ export default function EditProduct() {
             const response = await analyzeFood(imageFile);
             if (response.data.success && response.data.items?.length > 0) {
                 const item = response.data.items[0];
+                const newPortion = item.portion || 100;
+                const newCalories = item.calories || 0;
+                const newProtein = item.protein || 0;
+                const newCarbs = item.carbs || 0;
+                const newFat = item.fat || 0;
+                const newFiber = item.fiber || 0;
+
                 setFormData(prev => ({
                     ...prev,
                     name: item.name || prev.name,
-                    calories: item.calories || 0,
-                    protein: item.protein || 0,
-                    carbs: item.carbs || 0,
-                    fat: item.fat || 0,
-                    servingValue: item.portion || 100,
+                    calories: newCalories,
+                    protein: newProtein,
+                    carbs: newCarbs,
+                    fat: newFat,
+                    fiber: newFiber,
+                    servingValue: newPortion,
                     servingUnit: item.unit || 'g'
                 }));
+
+                // Also update baseValues for portion scaling to work correctly
+                setBaseValues({
+                    portion: newPortion,
+                    calories: newCalories,
+                    protein: newProtein,
+                    carbs: newCarbs,
+                    fat: newFat,
+                    fiber: newFiber,
+                });
+
                 setToast({ message: 'Auto-filled from AI analysis!', type: 'success' });
             } else {
                 setToast({ message: 'Could not analyze image', type: 'error' });
@@ -230,17 +249,36 @@ export default function EditProduct() {
             const response = await analyzeText(aiPrompt);
             if (response.data.success && response.data.product) {
                 const product = response.data.product;
+                const newPortion = product.portion || 100;
+                const newCalories = product.calories || 0;
+                const newProtein = product.protein || 0;
+                const newCarbs = product.carbs || 0;
+                const newFat = product.fat || 0;
+                const newFiber = product.fiber || 0;
+
                 setFormData({
                     name: product.name || '',
                     emoji: product.emoji || '🍽️',
                     category: product.category || 'Meal',
-                    servingValue: product.portion || 100,
+                    servingValue: newPortion,
                     servingUnit: product.unit || 'g',
-                    calories: product.calories || 0,
-                    protein: product.protein || 0,
-                    carbs: product.carbs || 0,
-                    fat: product.fat || 0,
+                    calories: newCalories,
+                    protein: newProtein,
+                    carbs: newCarbs,
+                    fat: newFat,
+                    fiber: newFiber,
                 });
+
+                // Also update baseValues for portion scaling to work correctly
+                setBaseValues({
+                    portion: newPortion,
+                    calories: newCalories,
+                    protein: newProtein,
+                    carbs: newCarbs,
+                    fat: newFat,
+                    fiber: newFiber,
+                });
+
                 setToast({ message: 'Product details filled from AI!', type: 'success' });
             } else {
                 setToast({ message: 'Could not analyze description', type: 'error' });
