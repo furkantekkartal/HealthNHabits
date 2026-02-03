@@ -1,4 +1,4 @@
-# 🚀 Oracle Cloud VM Setup Guide - HealthNHabbits
+# 🚀 Oracle Cloud VM Setup Guide - HealthNHabits
 
 A health and habit tracking application.
 
@@ -38,8 +38,8 @@ docker ps | grep ftcom-nginx     # Should be running
 
 ```bash
 cd ~/apps
-git clone https://github.com/furkantekkartal/HealthNHabbits.git
-cd HealthNHabbits
+git clone https://github.com/furkantekkartal/HealthNHabits.git
+cd HealthNHabits
 ```
 
 ---
@@ -277,7 +277,7 @@ This section explains how to push local changes to the server, test on dev, and 
 
 | Project | Dev URL | Prod URL | Location |
 |---------|---------|----------|----------|
-| **HealthNHabits** | healthnhabits-dev.furkantekkartal.com | healthnhabits.furkantekkartal.com | `~/apps/HealthNHabbits` |
+| **HealthNHabits** | healthnhabits-dev.furkantekkartal.com | healthnhabits.furkantekkartal.com | `~/apps/HealthNHabits` |
 | **HomeMadeKahoot** | kahoot-dev.furkantekkartal.com | kahoot.furkantekkartal.com | `~/apps/HomeMadeKahoot` |
 | **FTcom_Infrastructure** | N/A (shared infra) | N/A | `~/apps/FTcom_Infrastructure` |
 | **FTcom** | N/A | furkantekkartal.com | `~/apps/FTcom` |
@@ -307,7 +307,7 @@ git push origin dev
 ssh ubuntu@YOUR_SERVER_IP
 
 # Navigate to project
-cd ~/apps/HealthNHabbits  # or HomeMadeKahoot, FTcom, etc.
+cd ~/apps/HealthNHabits  # or HomeMadeKahoot, FTcom, etc.
 
 # Pull the dev branch
 git checkout dev
@@ -339,7 +339,7 @@ git merge dev
 git push origin master
 
 # OR: On the server, merge directly
-cd ~/apps/HealthNHabbits
+cd ~/apps/HealthNHabits
 git checkout master
 git pull origin master  # or: git merge dev
 ```
@@ -350,7 +350,7 @@ git pull origin master  # or: git merge dev
 
 ```bash
 # Navigate to project
-cd ~/apps/HealthNHabbits
+cd ~/apps/HealthNHabits
 
 # Ensure on master branch
 git checkout master
@@ -371,7 +371,7 @@ docker logs healthnhabits-backend --tail 50
 
 #### HealthNHabits
 ```bash
-cd ~/apps/HealthNHabbits
+cd ~/apps/HealthNHabits
 
 # Dev update
 git checkout dev && git pull origin dev
