@@ -164,19 +164,41 @@ export default function ProductDetail() {
         }
     };
 
-    // Navigate to catalog to add item
+    // Navigate to new product page to add item
     const addItem = () => {
+        // Save current state to sessionStorage so we can restore after returning
+        sessionStorage.setItem('productDetailState', JSON.stringify({
+            productId: id,
+            mealName,
+            items,
+            selectedMealType,
+            imageUrl
+        }));
+        // Navigate to new product page with returnTo pointing back here
+        navigate('/catalog/new', { state: { returnTo: `/catalog/view/${id}` } });
+    };
+
+    // Edit an existing item
+    const editItem = (item) => {
         // Save current state to sessionStorage
         sessionStorage.setItem('productDetailState', JSON.stringify({
             productId: id,
             mealName,
             items,
-            selectedMealType
+            selectedMealType,
+            imageUrl,
+            editingItemId: item.id
         }));
-        navigate('/catalog', { state: { returnTo: `/catalog/view/${id}` } });
+        // Navigate to edit page with the item data
+        navigate('/catalog/new', {
+            state: {
+                returnTo: `/catalog/view/${id}`,
+                editDetectedItem: item
+            }
+        });
     };
 
-    // Check for returned item from catalog
+    // Restore state when returning from EditProduct
     useEffect(() => {
         const savedState = sessionStorage.getItem('productDetailState');
         if (savedState) {
@@ -185,8 +207,36 @@ export default function ProductDetail() {
                 if (parsed.productId === id) {
                     // Restore state
                     if (parsed.mealName) setMealName(parsed.mealName);
-                    if (parsed.items) setItems(parsed.items);
                     if (parsed.selectedMealType) setSelectedMealType(parsed.selectedMealType);
+                    if (parsed.imageUrl) setImageUrl(parsed.imageUrl);
+
+                    // Check if a new item was added (stored by EditProduct)
+                    const newItemStr = sessionStorage.getItem('productDetailNewItem');
+                    if (newItemStr) {
+                        const newItem = JSON.parse(newItemStr);
+                        // Add new item to the list
+                        const existingItems = parsed.items || [];
+                        setItems([...existingItems, newItem]);
+                        sessionStorage.removeItem('productDetailNewItem');
+                    } else if (parsed.editingItemId) {
+                        // Check if an edited item was returned
+                        const editedItemStr = sessionStorage.getItem('productDetailEditedItem');
+                        if (editedItemStr) {
+                            const editedItem = JSON.parse(editedItemStr);
+                            // Replace the edited item in the list
+                            const updatedItems = (parsed.items || []).map(item =>
+                                item.id === parsed.editingItemId ? { ...editedItem, id: parsed.editingItemId } : item
+                            );
+                            setItems(updatedItems);
+                            sessionStorage.removeItem('productDetailEditedItem');
+                        } else {
+                            // No edit happened (user cancelled), restore original items
+                            if (parsed.items) setItems(parsed.items);
+                        }
+                    } else {
+                        // Normal restore (user cancelled adding)
+                        if (parsed.items) setItems(parsed.items);
+                    }
                 }
                 sessionStorage.removeItem('productDetailState');
             } catch (e) {
@@ -350,12 +400,7 @@ export default function ProductDetail() {
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <button
-                                                onClick={() => navigate('/catalog/new', {
-                                                    state: {
-                                                        returnTo: `/catalog/view/${id}`,
-                                                        editDetectedItem: item
-                                                    }
-                                                })}
+                                                onClick={() => editItem(item)}
                                                 className="text-gray-400 hover:text-primary transition-colors p-1"
                                             >
                                                 <span className="material-symbols-outlined text-[20px]">edit</span>

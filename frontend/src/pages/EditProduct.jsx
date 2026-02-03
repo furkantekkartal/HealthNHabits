@@ -392,6 +392,31 @@ export default function EditProduct() {
                     return;
                 }
 
+                // If editing a detected item for ProductDetail, save edited item
+                if (isEditingDetectedItem && returnTo?.startsWith('/catalog/view/')) {
+                    const editedItem = {
+                        name: formData.name,
+                        calories: formData.calories,
+                        protein: formData.protein,
+                        carbs: formData.carbs,
+                        fat: formData.fat,
+                        fiber: formData.fiber,
+                        portion: formData.servingValue,
+                        basePortion: formData.servingValue,
+                        baseCalories: formData.calories,
+                        baseProtein: formData.protein,
+                        baseCarbs: formData.carbs,
+                        baseFat: formData.fat,
+                        baseFiber: formData.fiber,
+                        unit: formData.servingUnit
+                    };
+                    sessionStorage.setItem('productDetailEditedItem', JSON.stringify(editedItem));
+                    setToast({ message: 'Item updated!', type: 'success' });
+                    sessionStorage.removeItem('editProductReturnTo');
+                    setTimeout(() => navigate(returnTo), 1000);
+                    return;
+                }
+
                 await createProduct(productData);
                 setToast({ message: 'Product created!', type: 'success' });
 
@@ -429,6 +454,31 @@ export default function EditProduct() {
                     // Clear the returnTo from sessionStorage
                     sessionStorage.removeItem('editProductReturnTo');
                     setTimeout(() => navigate('/analyze'), 1000);
+                    return;
+                }
+
+                // If coming from ProductDetail (adding new item), save new item for ProductDetail
+                if (returnTo?.startsWith('/catalog/view/')) {
+                    const newItem = {
+                        id: Date.now(),
+                        name: formData.name,
+                        calories: formData.calories,
+                        protein: formData.protein,
+                        carbs: formData.carbs,
+                        fat: formData.fat,
+                        fiber: formData.fiber,
+                        portion: formData.servingValue,
+                        basePortion: formData.servingValue,
+                        baseCalories: formData.calories,
+                        baseProtein: formData.protein,
+                        baseCarbs: formData.carbs,
+                        baseFat: formData.fat,
+                        baseFiber: formData.fiber,
+                        unit: formData.servingUnit
+                    };
+                    sessionStorage.setItem('productDetailNewItem', JSON.stringify(newItem));
+                    sessionStorage.removeItem('editProductReturnTo');
+                    setTimeout(() => navigate(returnTo), 1000);
                     return;
                 }
             } else {
