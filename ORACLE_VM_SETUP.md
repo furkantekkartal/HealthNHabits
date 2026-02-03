@@ -20,6 +20,7 @@ A health and habit tracking application.
 - [7. Run Both Environments](#7-run-both-environments)
 - [8. Docker Management](#8-docker-management)
 - [9. Troubleshooting](#9-troubleshooting)
+- [10. How to Update a Project](#10-how-to-update-a-project-deploy-changes)
 
 ---
 
@@ -268,4 +269,175 @@ docker inspect healthnhabits-backend | grep -A 10 Health
 
 ---
 
-**Last Updated**: 2026-02-03
+## 10. How to Update a Project (Deploy Changes)
+
+This section explains how to push local changes to the server, test on dev, and deploy to production. This workflow applies to all 4 projects.
+
+### Project Overview
+
+| Project | Dev URL | Prod URL | Location |
+|---------|---------|----------|----------|
+| **HealthNHabits** | healthnhabits-dev.furkantekkartal.com | healthnhabits.furkantekkartal.com | `~/apps/HealthNHabbits` |
+| **HomeMadeKahoot** | kahoot-dev.furkantekkartal.com | kahoot.furkantekkartal.com | `~/apps/HomeMadeKahoot` |
+| **FTcom_Infrastructure** | N/A (shared infra) | N/A | `~/apps/FTcom_Infrastructure` |
+| **FTcom** | N/A | furkantekkartal.com | `~/apps/FTcom` |
+
+---
+
+### Step 1: Push Changes from Local (on your computer)
+
+```bash
+# Make sure you're on dev branch
+git checkout dev
+
+# Commit your changes
+git add -A
+git commit -m "feat: description of your changes"
+
+# Push to remote
+git push origin dev
+```
+
+---
+
+### Step 2: Pull and Test on Dev (on the server)
+
+```bash
+# SSH to server
+ssh ubuntu@YOUR_SERVER_IP
+
+# Navigate to project
+cd ~/apps/HealthNHabbits  # or HomeMadeKahoot, FTcom, etc.
+
+# Pull the dev branch
+git checkout dev
+git pull origin dev
+
+# Rebuild dev containers (down first to avoid errors)
+docker-compose -f docker-compose-dev.yml down
+docker-compose -f docker-compose-dev.yml up -d --build
+
+# Check logs for errors
+docker logs dev-healthnhabits-backend --tail 50
+```
+
+**Test the dev environment:**
+- Visit https://healthnhabits-dev.furkantekkartal.com
+- Verify your changes work correctly
+- Check backend logs: `docker logs dev-healthnhabits-backend -f`
+
+---
+
+### Step 3: Promote to Production (if dev works)
+
+Only after verifying dev works correctly:
+
+```bash
+# On your local machine: merge dev to master
+git checkout master
+git merge dev
+git push origin master
+
+# OR: On the server, merge directly
+cd ~/apps/HealthNHabbits
+git checkout master
+git pull origin master  # or: git merge dev
+```
+
+---
+
+### Step 4: Deploy to Production (on the server)
+
+```bash
+# Navigate to project
+cd ~/apps/HealthNHabbits
+
+# Ensure on master branch
+git checkout master
+git pull origin master
+
+# Rebuild production containers (down first to avoid errors)
+docker-compose -f docker-compose.prod.yml down
+docker-compose -f docker-compose.prod.yml up -d --build
+
+# Verify
+curl -I http://healthnhabits.furkantekkartal.com/api/health
+docker logs healthnhabits-backend --tail 50
+```
+
+---
+
+### Quick Reference Commands (Per Project)
+
+#### HealthNHabits
+```bash
+cd ~/apps/HealthNHabbits
+
+# Dev update
+git checkout dev && git pull origin dev
+docker-compose -f docker-compose-dev.yml down
+docker-compose -f docker-compose-dev.yml up -d --build
+
+# Prod update
+git checkout master && git pull origin master
+docker-compose -f docker-compose.prod.yml down
+docker-compose -f docker-compose.prod.yml up -d --build
+```
+
+#### HomeMadeKahoot
+```bash
+cd ~/apps/HomeMadeKahoot
+
+# Dev update
+git checkout dev && git pull origin dev
+docker-compose -f docker-compose-dev.yml down
+docker-compose -f docker-compose-dev.yml up -d --build
+
+# Prod update
+git checkout master && git pull origin master
+docker-compose -f docker-compose.prod.yml down
+docker-compose -f docker-compose.prod.yml up -d --build
+```
+
+#### FTcom_Infrastructure
+```bash
+cd ~/apps/FTcom_Infrastructure
+
+# Update (single environment)
+git pull origin master
+docker-compose down
+docker-compose up -d --build
+```
+
+#### FTcom (Gateway/Portfolio)
+```bash
+cd ~/apps/FTcom
+
+# Update
+git pull origin master
+docker-compose down
+docker-compose up -d --build
+```
+
+---
+
+### Rollback (If Something Goes Wrong)
+
+```bash
+# On server: revert to previous commit
+git log --oneline -5  # see recent commits
+git checkout <previous-commit-hash>
+docker-compose -f docker-compose.prod.yml down
+docker-compose -f docker-compose.prod.yml up -d --build
+
+# OR: reset to remote master
+git fetch origin
+git reset --hard origin/master
+docker-compose -f docker-compose.prod.yml down
+docker-compose -f docker-compose.prod.yml up -d --build
+```
+
+---
+
+**Last Updated**: 2026-02-04
+
