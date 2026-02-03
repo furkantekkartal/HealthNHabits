@@ -1,25 +1,80 @@
-# HealthNHabits (Secondary App)
+# HealthNHabits
 
-A health and habit tracking application, now deployed as a secondary project behind the FTcom Gateway.
+A health and habit tracking application deployed on furkantekkartal.com infrastructure.
 
-## 🏗 Infrastructure Role
+---
 
-This project is served on **Port 2220** and reached via `healthnhabits.furkantekkartal.com`.
-The **FTcom** project handles the public SSL and Port 80 traffic, forwarding it to this service.
+## 🚀 Deployment Order
 
-## 🚀 Deployment
+> [!IMPORTANT]
+> **Deploy in this exact order:**
+> 1. **FTcom_Infrastructure** - Shared database (FIRST)
+> 2. **FTcom** - Gateway (nginx)
+> 3. **This project** ← YOU ARE HERE
 
-**IMPORTANT**: If you are migrating from an old installation, follow the **Backup & Restore** guide in [ORACLE_VM_SETUP.md](./ORACLE_VM_SETUP.md).
+---
 
-### Quick Start
+## Quick Start
+
 ```bash
+# 1. Ensure Infrastructure and Gateway are running first!
+docker ps | grep infra-postgres
+docker ps | grep ftcom-nginx
+
+# 2. Clone/pull project
 git clone https://github.com/furkantekkartal/HealthNHabbits.git
 cd HealthNHabbits
+
+# 3. Start containers
 docker-compose -f docker-compose.prod.yml up -d --build
+docker-compose -f docker-compose-dev.yml up -d --build
+
+# 4. Verify
+curl http://healthnhabits.furkantekkartal.com/api/health
 ```
 
-## 📁 Project ID: 2
-| Environment | Ports |
-|-------------|-------|
-| Production  | 2210 (API), 2220 (UI), 2230 (DB) |
-| Development | 2110 (API), 2120 (UI), 2130 (DB) |
+---
+
+## URLs
+
+| Environment | URL |
+|-------------|-----|
+| Production | https://healthnhabits.furkantekkartal.com |
+| Development | https://healthnhabits-dev.furkantekkartal.com |
+
+---
+
+## Port Assignments (Project ID: 2)
+
+| Environment | Backend | Frontend |
+|-------------|---------|----------|
+| Production | 2210 | 2220 |
+| Development | 2110 | 2120 |
+
+**Note**: Database is now handled by FTcom_Infrastructure (shared `infra-postgres`).
+
+---
+
+## Database
+
+Databases are hosted in the shared Infrastructure container:
+- **Production**: `hnh_prod` 
+- **Development**: `hnh_dev`
+
+### Copy Prod → Dev
+```bash
+cd ~/apps/FTcom_Infrastructure
+./scripts/copy-prod-to-dev.sh healthnhabits
+```
+
+---
+
+## Troubleshooting
+
+### 502 Bad Gateway
+- Check Infrastructure is running: `docker ps | grep infra-postgres`
+- Check container logs: `docker logs healthnhabits-backend`
+
+### Database Connection Failed
+- Ensure `infra-network` is in docker-compose networks
+- Verify `DB_HOST=infra-postgres` in environment

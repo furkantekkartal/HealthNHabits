@@ -1,27 +1,10 @@
 # HealthNHabits Docker Compose - DEVELOPMENT (Project ID 2)
-# This can run ALONGSIDE production on the same machine
+# REQUIRES: Infrastructure container running first
+# Run with: docker compose -f docker-compose-dev.yml up -d
 
 version: '3.8'
 
 services:
-  # Dev Database (Port 2130)
-  dev-postgres:
-    image: postgres:16-alpine
-    container_name: dev-healthnhabits-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-healthnhabits}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-healthnhabits_dev}
-      POSTGRES_DB: dev_healthnhabits
-    volumes:
-      - dev_postgres_data:/var/lib/postgresql/data
-    ports:
-      - "2130:5432"
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-healthnhabits}" ]
-    networks:
-      - dev-network
-
   # Dev Backend (Port 2110)
   dev-backend:
     build:
@@ -32,10 +15,10 @@ services:
     environment:
       NODE_ENV: development
       PORT: 5050
-      DB_NAME: dev_healthnhabits
-      DB_USER: ${POSTGRES_USER:-healthnhabits}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-healthnhabits_dev}
-      DB_HOST: dev-postgres
+      DB_NAME: hnh_dev
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_HOST: infra-postgres
       DB_PORT: 5432
       JWT_SECRET: ${JWT_SECRET:-dev_secret_key}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
@@ -44,11 +27,9 @@ services:
       - dev_backend_uploads:/app/uploads
     ports:
       - "2110:5050"
-    depends_on:
-      dev-postgres:
-        condition: service_healthy
     networks:
       - dev-network
+      - infra-network
 
   dev-frontend:
     build:
@@ -68,7 +49,9 @@ services:
 networks:
   dev-network:
     driver: bridge
+  infra-network:
+    external: true
+    name: infra-network
 
 volumes:
-  dev_postgres_data:
   dev_backend_uploads:
