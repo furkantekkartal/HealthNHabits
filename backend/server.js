@@ -93,9 +93,8 @@ app.use((err, req, res, next) => {
 const startServer = async () => {
     try {
         // Sync database (creates tables if they don't exist)
-        // Use { alter: true } in development to update tables
-        // Use { force: true } to drop and recreate (DANGER: loses data)
-        const syncOptions = nodeEnv === 'development' ? { alter: true } : {};
+        // Use { alter: true } to update tables (needed for schema changes like adding ingredients)
+        const syncOptions = { alter: true };
         await syncDatabase(syncOptions);
 
         // Start server
