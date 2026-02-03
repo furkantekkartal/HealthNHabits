@@ -63,8 +63,8 @@ Databases are hosted in the shared Infrastructure container:
 
 ### Copy Prod → Dev
 ```bash
-cd ~/apps/FTcom_Infrastructure
-./scripts/copy-prod-to-dev.sh healthnhabits
+# Run from Infrastructure project
+~/apps/FTcom_Infrastructure/scripts/copy-prod-to-dev.sh healthnhabits
 ```
 
 ---

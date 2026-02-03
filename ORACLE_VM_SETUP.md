@@ -1,340 +1,271 @@
-# 🚀 Oracle Cloud VM Setup Guide - HealthNHabits
+# 🚀 Oracle Cloud VM Setup Guide - HealthNHabbits
 
-Complete guide for deploying **HealthNHabits** to your Oracle Cloud VM with Cloudflare DNS.
+A health and habit tracking application.
+
+> [!IMPORTANT]
+> **Prerequisites**: 
+> 1. FTcom_Infrastructure must be running (database)
+> 2. FTcom must be running (gateway)
 
 ---
 
 ## 📑 Table of Contents
 
-- [Part 1: Connect to Your VM](#part-1-connect-to-your-vm)
-- [Part 2: Configure Oracle Cloud Firewall](#part-2-configure-oracle-cloud-firewall)
-- [Part 3: Configure Cloudflare DNS](#part-3-configure-cloudflare-dns)
-- [Part 4: Backup Before Changes](#part-4-backup-before-changes)
-- [Part 5: Run Initial Setup Script](#part-5-run-initial-setup-script)
-- [Part 6: Configure Environment Variables](#part-6-configure-environment-variables)
-- [Part 7: Start Containers](#part-7-start-containers)
-- [Part 8: Verify Installation](#part-8-verify-installation)
-- [Part 9: Troubleshooting](#part-9-troubleshooting)
-- [Part 10: Updating the Application](#part-10-updating-the-application)
-- [Port Reference](#port-reference)
+- [1. Prerequisites](#1-prerequisites)
+- [2. Clone Repository](#2-clone-repository)
+- [3. Configure Environment](#3-configure-environment)
+- [4. Start Services](#4-start-services)
+- [5. Run Only Production](#5-run-only-production)
+- [6. Run Only Development](#6-run-only-development)
+- [7. Run Both Environments](#7-run-both-environments)
+- [8. Docker Management](#8-docker-management)
+- [9. Troubleshooting](#9-troubleshooting)
 
 ---
 
-## 📋 Prerequisites
+## 1. Prerequisites
 
-| Requirement | Value |
-|-------------|-------|
-| VM IP Address | `149.118.67.133` |
-| GitHub Repo | `https://github.com/furkantekkartal/HealthNHabits` |
-| Domain | `furkantekkartal.com` |
-| SSH User | `ubuntu` |
-
-> [!WARNING]
-> **FTcom Gateway Must Be Running First!**
-> This project requires the **FTcom** gateway (Project ID 1) to be deployed and running on Port 80. If you haven't deployed FTcom yet, do that first by following its `ORACLE_VM_SETUP.md`.
-
----
-
-## Part 1: Connect to Your VM
-
-Using PuTTY:
-1. Host: `149.118.67.133`, Port: `22`
-2. Connection → SSH → Auth → Credentials: Select your `.ppk` file
-3. Login as: `ubuntu`
-
----
-
-## Part 2: Configure Oracle Cloud Firewall
-
-Add these **Ingress Rules** in [Oracle Cloud Console](https://cloud.oracle.com) → Networking → VCN → Security List:
-
-| Source CIDR | Protocol | Port | Description |
-|-------------|----------|------|-------------|
-| `0.0.0.0/0` | TCP | 2110 | Dev Backend (Project ID 2) |
-| `0.0.0.0/0` | TCP | 2120 | Dev Frontend (Project ID 2) |
-| `0.0.0.0/0` | TCP | 2130 | Dev Database (Project ID 2) |
-| `0.0.0.0/0` | TCP | 2210 | Prod Backend (Project ID 2) |
-| `0.0.0.0/0` | TCP | 2220 | Prod Frontend (Project ID 2) |
-| `0.0.0.0/0` | TCP | 2230 | Prod Database (Project ID 2) |
-
-> [!NOTE]
-> Ports 80 and 443 are managed by **FTcom** (Project ID 1). HealthNHabbits is accessed via subdomains that FTcom proxies to Port 2220.
-
----
-
-## Part 3: Configure Cloudflare DNS
-
-1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/) → Your Domain → DNS → Records
-2. Add these **A records** (all pointing to your VM IP):
-
-| Type | Name | Content | Proxy |
-|------|------|---------|-------|
-| A | `@` | `149.118.67.133` | DNS only (gray cloud) |
-| A | `www` | `149.118.67.133` | DNS only (gray cloud) |
-| A | `healthnhabits` | `149.118.67.133` | DNS only (gray cloud) |
-| A | `healthnhabits-dev` | `149.118.67.133` | DNS only (gray cloud) |
-
-> ⚠️ **Important:** Keep Proxy OFF (gray cloud) unless you configure SSL through Cloudflare.
-
-**Result URLs:**
-- `http://furkantekkartal.com` → Portfolio (FTcom Project)
-- `http://healthnhabits.furkantekkartal.com` → Production (Proxied to Port 2220)
-- `http://healthnhabits-dev.furkantekkartal.com` → Development (Proxied to Port 2120)
-
----
-
-## Part 4: Backup Before Changes
-
-Before any major changes, backup your data to a safe location:
-
+Verify Infrastructure and Gateway are running:
 ```bash
-# Create a permanent backup folder (outside project directory)
-sudo mkdir -p /home/ubuntu/backups/healthnhabits
-sudo chown ubuntu:ubuntu /home/ubuntu/backups/healthnhabits
-
-# Create timestamped backup
-BACKUP_DATE=$(date +%Y%m%d_%H%M%S)
-mkdir -p /home/ubuntu/backups/healthnhabits/$BACKUP_DATE
-
-# Backup Production Database
-docker exec healthnhabits-db pg_dump -U healthnhabits -d healthnhabits > /home/ubuntu/backups/healthnhabits/$BACKUP_DATE/prod_database.sql
-
-# Backup Upload Files (from Docker volume)
-docker cp healthnhabits-backend:/app/uploads /home/ubuntu/backups/healthnhabits/$BACKUP_DATE/prod_uploads 2>/dev/null || echo "No uploads found"
-
-# Verify
-ls -la /home/ubuntu/backups/healthnhabits/$BACKUP_DATE
+docker ps | grep infra-postgres  # Should be healthy
+docker ps | grep ftcom-nginx     # Should be running
 ```
 
-> 📁 **Safe Location:** `/home/ubuntu/backups/` is outside the project folder and won't be deleted.
-
 ---
 
-## Part 5: Run Initial Setup Script
-
-This script automatically:
-- Updates system packages
-- Installs Docker and Git
-- Configures iptables firewall
-- Clones the repository to `~/apps/HealthNHabits`
-- Creates `.env` file from template
+## 2. Clone Repository
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/furkantekkartal/HealthNHabits/master/scripts/initial-setup.sh | bash
+cd ~/apps
+git clone https://github.com/furkantekkartal/HealthNHabbits.git
+cd HealthNHabbits
 ```
 
-> ⚠️ **IMPORTANT: After this script completes, you MUST log out and log back in for Docker permissions to take effect!**
-
 ---
 
-## Part 6: Configure Environment Variables
+## 3. Configure Environment
 
 ```bash
-cd ~/apps/HealthNHabits
+# Copy example and edit
+cp .env.example .env
 nano .env
 ```
 
-Fill in your values:
+Required variables:
 ```env
-POSTGRES_USER=healthnhabits
-POSTGRES_PASSWORD=YOUR_SECURE_PASSWORD
-POSTGRES_DB=healthnhabits
-JWT_SECRET=YOUR_LONG_RANDOM_STRING
-GEMINI_API_KEY=your_gemini_api_key
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=YOUR_INFRA_PASSWORD
+JWT_SECRET=your_random_secret_key
+OPENROUTER_API_KEY=your_key
+GEMINI_API_KEY=your_key
+```
+
+For development, also create:
+```bash
+cp .env .env.dev
+nano .env.dev
+# Change any dev-specific values
 ```
 
 ---
 
-## Part 7: Start Containers
+## 4. Start Services
 
-> ⚠️ **IMPORTANT:** Start DEV first (creates network), then PROD (connects to dev network for subdomain routing).
-
-### Step 1: Start Development
 ```bash
-cd ~/apps/HealthNHabits
+# Production only
+docker-compose -f docker-compose.prod.yml up -d --build
+
+# Development only
+docker-compose -f docker-compose-dev.yml up -d --build
+
+# Both
+docker-compose -f docker-compose.prod.yml up -d --build
 docker-compose -f docker-compose-dev.yml up -d --build
 ```
 
-### Step 2: Start Production
+---
+
+## 5. Run Only Production
+
 ```bash
+# Start production
 docker-compose -f docker-compose.prod.yml up -d --build
+
+# Verify
+curl -I http://healthnhabits.furkantekkartal.com/api/health
 ```
 
-### Verify Both Running
-```bash
-docker ps --format "table {{.Names}}\t{{.Status}}"
-```
+**URLs**:
+- https://healthnhabits.furkantekkartal.com
 
-Expected output:
-```
-NAMES                        STATUS
-healthnhabits-nginx          Up (healthy)
-healthnhabits-frontend       Up (healthy)
-healthnhabits-backend        Up (healthy)
-healthnhabits-db             Up (healthy)
-dev-healthnhabits-nginx      Up (healthy)
-dev-healthnhabits-frontend   Up (healthy)
-dev-healthnhabits-backend    Up (healthy)
-dev-healthnhabits-db         Up (healthy)
-```
+**Ports**: 2210 (backend), 2220 (frontend)
 
 ---
 
-## Part 8: Verify Installation
-
-### Check Subdomains (Via FTcom Gateway)
-```bash
-curl -I http://furkantekkartal.com  # Should show portfolio
-curl -I http://healthnhabits.furkantekkartal.com  # Should now return 200 OK
-curl -I http://healthnhabits-dev.furkantekkartal.com  # Should now return 200 OK
-```
-
-All should return `HTTP/1.1 200 OK` if both FTcom and HealthNHabbits are running.
-
-### Check Container Logs
-```bash
-docker logs healthnhabits-backend --tail 20
-docker logs dev-healthnhabits-backend --tail 20
-```
-
-### Check Health Endpoints
-```bash
-curl http://localhost:2210/api/health  # Production Backend
-curl http://localhost:2110/api/health  # Development Backend
-```
-
----
-
-## Part 9: Troubleshooting
-
-### Fix: Docker-Compose "ContainerConfig" Error
-
-If you see `KeyError: 'ContainerConfig'`:
+## 6. Run Only Development
 
 ```bash
-# Force remove containers
-docker rm -f $(docker ps -aq --filter "name=healthnhabits") 2>/dev/null || true
-
-# Start again
+# Start development
 docker-compose -f docker-compose-dev.yml up -d --build
+
+# Verify
+curl -I http://healthnhabits-dev.furkantekkartal.com/api/health
+```
+
+**URLs**:
+- https://healthnhabits-dev.furkantekkartal.com
+
+**Ports**: 2110 (backend), 2120 (frontend)
+
+---
+
+## 7. Run Both Environments
+
+```bash
+# Start both
 docker-compose -f docker-compose.prod.yml up -d --build
-```
+docker-compose -f docker-compose-dev.yml up -d --build
 
-### Dev Subdomain Returns 502
-
-Dev containers might not be running:
-```bash
-docker-compose -f docker-compose-dev.yml up -d
-```
-
-### Clean Up Disk Space
-```bash
-docker system prune -af
+# Check all containers
+docker ps --format "table {{.Names}}\t{{.Status}}" | grep healthnhabits
 ```
 
 ---
 
-## Part 10: Updating the Application
+## 8. Docker Management
 
-### Workflow: Dev → Test → Push to Master → Deploy Prod
-
-#### Step 1: Clone Production Data (Before Changes)
+### View Status
 ```bash
-cd ~/apps/HealthNHabits
-bash scripts/clone-prod-to-dev.sh
+docker ps --format "table {{.Names}}\t{{.Status}}" | grep healthnhabits
 ```
 
-#### Step 2: Pull & Deploy Dev Changes
+### View Logs
 ```bash
-git fetch origin
-git checkout dev
-git pull origin dev
+# Production
+docker logs healthnhabits-backend --tail 50
+docker logs healthnhabits-frontend --tail 50
 
-# Rebuild dev
-docker rm -f $(docker ps -aq --filter "name=dev-healthnhabits") 2>/dev/null || true
+# Development
+docker logs dev-healthnhabits-backend --tail 50
+docker logs dev-healthnhabits-frontend --tail 50
+
+# Follow live
+docker logs healthnhabits-backend -f
+```
+
+### Resource Usage (RAM/CPU)
+```bash
+docker stats --no-stream | grep healthnhabits
+```
+
+### Stop Services
+```bash
+# Stop production
+docker-compose -f docker-compose.prod.yml down
+
+# Stop development
+docker-compose -f docker-compose-dev.yml down
+
+# Stop all
+docker-compose -f docker-compose.prod.yml down
+docker-compose -f docker-compose-dev.yml down
+```
+
+### Restart Services
+```bash
+# Restart production
+docker-compose -f docker-compose.prod.yml restart
+
+# Restart development
+docker-compose -f docker-compose-dev.yml restart
+
+# Restart specific container
+docker restart healthnhabits-backend
+```
+
+### Rebuild (after code changes)
+```bash
+# Rebuild production
+docker-compose -f docker-compose.prod.yml up -d --build
+
+# Rebuild development
 docker-compose -f docker-compose-dev.yml up -d --build
 ```
 
-Test at: `http://healthnhabits-dev.furkantekkartal.com`
-
-#### Step 3: Push Dev to Master (on your local IDE)
+### Delete and Recreate
 ```bash
-git checkout master
-git merge dev
-git push origin master
-```
+# Remove production containers
+docker-compose -f docker-compose.prod.yml down
+docker rmi healthnhabits_backend healthnhabits_frontend
 
-#### Step 4: Deploy Production
-```bash
-cd ~/apps/HealthNHabits
-git checkout master
-git pull origin master
-
-# Rebuild prod
-docker rm -f $(docker ps -aq --filter "name=healthnhabits-") 2>/dev/null || true
+# Recreate
 docker-compose -f docker-compose.prod.yml up -d --build
 ```
 
-#### Step 5: Verify Both Running
+---
+
+## 9. Troubleshooting
+
+### 502 Bad Gateway
 ```bash
-docker ps --format "table {{.Names}}\t{{.Status}}"
+# Check containers are running
+docker ps | grep healthnhabits
+
+# Check backend logs
+docker logs healthnhabits-backend --tail 50
+
+# Restart gateway to pick up network
+docker restart ftcom-nginx
+```
+
+### Database Connection Failed
+```bash
+# Check infra-postgres is running
+docker ps | grep infra-postgres
+
+# Test database connection
+docker exec infra-postgres psql -U postgres -c "\l" | grep hnh
+
+# Verify .env has correct password
+cat .env | grep POSTGRES
+```
+
+### Backend Not Starting
+```bash
+# Check for syntax errors
+docker logs healthnhabits-backend --tail 100
+
+# Shell into container
+docker exec -it healthnhabits-backend sh
+```
+
+### Frontend Shows Blank Page
+```bash
+# Check frontend logs
+docker logs healthnhabits-frontend --tail 50
+
+# Check nginx config inside container
+docker exec healthnhabits-frontend cat /etc/nginx/conf.d/default.conf
+```
+
+### API Returns 500 Error
+```bash
+# Check backend logs for stack trace
+docker logs healthnhabits-backend --tail 100
+
+# Check if database tables exist
+docker exec infra-postgres psql -U postgres -d hnh_prod -c "\dt"
+```
+
+### Health Check Failing
+```bash
+# Check what health endpoint returns
+curl http://localhost:2210/api/health
+
+# Check docker health status
+docker inspect healthnhabits-backend | grep -A 10 Health
 ```
 
 ---
 
-## Part 11: Backup & Restore
-
-### Quick Backup (Recommended)
-```bash
-cd ~/apps/HealthNHabits
-bash scripts/backup.sh
-```
-
-This creates a complete backup including:
-- `.env` configuration
-- Production & Dev databases
-- All upload files (images, analyzed images, profiles)
-
-**Backup location**: `~/backups/healthnhabits/YYYYMMDD_HHMMSS/`
-
-### Restore from Backup
-```bash
-# List available backups
-ls -lh ~/backups/healthnhabits/
-
-# Restore specific backup (replace TIMESTAMP with folder name)
-bash ~/apps/HealthNHabits/scripts/restore-backup.sh TIMESTAMP
-```
-
-Example:
-```bash
-bash ~/apps/HealthNHabits/scripts/restore-backup.sh 20260202_180000
-```
-
-### Automated Daily Backups
-```bash
-# Add to crontab for daily backup at 3 AM
-crontab -e
-
-# Add this line:
-0 3 * * * cd ~/apps/HealthNHabits && bash scripts/backup.sh >> ~/backups/backup.log 2>&1
-```
-
----
-
-## Port Reference
-
-| Service | Dev Port | Prod Port | Notes |
-|---------|----------|-----------|-------|
-| Frontend | **2120** | **2220** | Accessed via FTcom Gateway on Port 80 |
-| Backend | **2110** | **2210** | Direct API access |
-| PostgreSQL | **2130** | **2230** | Internal only |
-
-**Subdomains:**
-| URL | Environment |
-|-----|-------------|
-| `furkantekkartal.com` | Portfolio |
-| `healthnhabits.furkantekkartal.com` | Production |
-| `healthnhabits-dev.furkantekkartal.com` | Development |
-
----
+**Last Updated**: 2026-02-03
