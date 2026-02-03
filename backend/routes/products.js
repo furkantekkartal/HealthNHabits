@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
         const products = await Product.findAll({
             where,
             include: [{ model: ProductVariant, as: 'variants' }],
-            order: [['usage_count', 'DESC'], ['sort_order', 'ASC']]
+            order: [['createdAt', 'DESC']]
         });
 
         res.json(products.map(p => formatProduct(p, req)));

@@ -21,6 +21,9 @@ const CATEGORIES = [
     { id: 'Custom', color: 'bg-purple-500 text-white' },
 ];
 
+// Feature flag - set to true to re-enable Most Used section
+const SHOW_MOST_USED = false;
+
 export default function Catalog() {
     const navigate = useNavigate();
     const location = useLocation();
@@ -54,12 +57,20 @@ export default function Catalog() {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const [mostUsedRes, allRes] = await Promise.all([
-                    getMostUsedProducts(6),
+                const requests = [
                     getProducts({ category: activeCategory === 'All' ? undefined : activeCategory })
-                ]);
-                setMostUsed(mostUsedRes.data || []);
-                setAllProducts(allRes.data || []);
+                ];
+                // Only fetch Most Used if feature is enabled
+                if (SHOW_MOST_USED) {
+                    requests.unshift(getMostUsedProducts(6));
+                }
+                const results = await Promise.all(requests);
+                if (SHOW_MOST_USED) {
+                    setMostUsed(results[0].data || []);
+                    setAllProducts(results[1].data || []);
+                } else {
+                    setAllProducts(results[0].data || []);
+                }
             } catch (err) {
                 console.error('Error fetching products:', err);
             } finally {
@@ -138,6 +149,8 @@ export default function Catalog() {
     };
 
     const handleLongPress = (product, isMostUsed) => {
+        // Disable long-press when Most Used is hidden
+        if (!SHOW_MOST_USED) return;
         setLongPressItem({ product, isMostUsed });
     };
 
@@ -322,8 +335,8 @@ export default function Catalog() {
                 </div>
             </div>
 
-            {/* Most Used Section - 3x2 Grid, 30% Smaller - Hidden when searching */}
-            {mostUsed.length > 0 && !searchQuery && (
+            {/* Most Used Section - Hidden via SHOW_MOST_USED flag */}
+            {SHOW_MOST_USED && mostUsed.length > 0 && !searchQuery && (
                 <div className="pt-4 pb-2 px-4">
                     <div className="flex items-center justify-between mb-3">
                         <h2 className="text-lg font-bold text-slate-900 tracking-tight">Most Used</h2>
@@ -342,7 +355,7 @@ export default function Catalog() {
                                 }}
                             >
                                 <Link
-                                    to={`/catalog/edit/${product._id || product.id}`}
+                                    to={`/catalog/view/${product._id || product.id}`}
                                     className="relative w-full aspect-square rounded-lg overflow-hidden mb-2 bg-gray-100 flex items-center justify-center"
                                 >
                                     {product.imageUrl ? (
@@ -400,7 +413,7 @@ export default function Catalog() {
                                 }}
                             >
                                 <Link
-                                    to={`/catalog/edit/${product._id || product.id}`}
+                                    to={`/catalog/view/${product._id || product.id}`}
                                     className="size-12 rounded-lg bg-gray-100 flex-shrink-0 flex items-center justify-center overflow-hidden"
                                 >
                                     {product.imageUrl ? (
@@ -413,7 +426,7 @@ export default function Catalog() {
                                     )}
                                 </Link>
                                 <Link
-                                    to={`/catalog/edit/${product._id || product.id}`}
+                                    to={`/catalog/view/${product._id || product.id}`}
                                     className="flex-1 ml-3 mr-2"
                                 >
                                     <div className="flex justify-between items-baseline">

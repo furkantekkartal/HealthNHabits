@@ -5,6 +5,7 @@ import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
 import Catalog from './pages/Catalog';
 import EditProduct from './pages/EditProduct';
+import ProductDetail from './pages/ProductDetail';
 import NewCategory from './pages/NewCategory';
 import FoodAnalysis from './pages/FoodAnalysis';
 import Hydration from './pages/Hydration';
@@ -59,6 +60,7 @@ function AppRoutes() {
         <Route index element={<Dashboard />} />
         <Route path="catalog" element={<Catalog />} />
         <Route path="catalog/new" element={<EditProduct />} />
+        <Route path="catalog/view/:id" element={<ProductDetail />} />
         <Route path="catalog/edit/:id" element={<EditProduct />} />
         <Route path="catalog/category/new" element={<NewCategory />} />
         <Route path="analyze" element={<FoodAnalysis />} />
