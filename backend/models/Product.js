@@ -68,6 +68,12 @@ const Product = sequelize.define('Product', {
         type: DataTypes.INTEGER,
         defaultValue: 0,
         field: 'sort_order'
+    },
+    // Store ingredients as JSON array for meals
+    ingredients: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+        defaultValue: null
     }
 }, {
     tableName: 'products',
@@ -104,7 +110,9 @@ Product.prototype.toAPIFormat = function () {
             sugar: parseFloat(json.sugar) || 0
         },
         // Map imagePath to imageUrl for frontend compatibility
-        imageUrl: json.imagePath
+        imageUrl: json.imagePath,
+        // Include ingredients for meals
+        ingredients: json.ingredients || []
     };
 };
 

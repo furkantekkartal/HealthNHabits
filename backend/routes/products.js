@@ -132,6 +132,11 @@ router.post('/', async (req, res) => {
             productData.sugar = req.body.sugar || 0;
         }
 
+        // Handle ingredients (for meals with multiple items)
+        if (req.body.ingredients && Array.isArray(req.body.ingredients)) {
+            productData.ingredients = req.body.ingredients;
+        }
+
         const product = await Product.create(productData);
 
         // Handle variants if provided
@@ -215,6 +220,11 @@ router.put('/:id', async (req, res) => {
             updateData.fat = req.body.nutrition.fat;
             updateData.fiber = req.body.nutrition.fiber;
             updateData.sugar = req.body.nutrition.sugar;
+        }
+
+        // Handle ingredients update
+        if (req.body.ingredients !== undefined) {
+            updateData.ingredients = req.body.ingredients;
         }
 
         await product.update(updateData);

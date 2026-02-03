@@ -244,7 +244,25 @@ export default function FoodAnalysis() {
                     carbs: totals.carbs,
                     fat: totals.fat,
                     fiber: totals.fiber
-                }
+                },
+                // Save ingredients so they can be edited later
+                ingredients: result.items.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    calories: item.calories,
+                    protein: item.protein,
+                    carbs: item.carbs,
+                    fat: item.fat,
+                    fiber: item.fiber || 0,
+                    portion: item.portion,
+                    basePortion: item.basePortion || item.portion,
+                    baseCalories: item.baseCalories || item.calories,
+                    baseProtein: item.baseProtein || item.protein,
+                    baseCarbs: item.baseCarbs || item.carbs,
+                    baseFat: item.baseFat || item.fat,
+                    baseFiber: item.baseFiber || item.fiber || 0,
+                    unit: item.unit || 'g'
+                }))
             };
 
             // Save to catalog for "Most Used"
