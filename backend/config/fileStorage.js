@@ -1,6 +1,7 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const sharp = require('sharp');
 
 // Ensure upload directories exist
 const uploadsDir = path.join(__dirname, '..', 'uploads');
@@ -12,6 +13,54 @@ const analyzedImagesDir = path.join(uploadsDir, 'analyzed_images');
         fs.mkdirSync(dir, { recursive: true });
     }
 });
+
+// Compress and resize image buffer for AI analysis
+// Reduces file size significantly while maintaining quality for vision AI
+const compressImage = async (buffer, options = {}) => {
+    const {
+        maxWidth = 1200,        // Max width for AI analysis (good balance)
+        quality = 80,           // JPEG quality (80% is good for AI)
+        format = 'jpeg'         // Output format
+    } = options;
+
+    try {
+        const image = sharp(buffer);
+        const metadata = await image.metadata();
+
+        // Only resize if image is larger than maxWidth
+        let pipeline = image;
+        if (metadata.width && metadata.width > maxWidth) {
+            pipeline = pipeline.resize(maxWidth, null, {
+                withoutEnlargement: true,
+                fit: 'inside'
+            });
+        }
+
+        // Convert to JPEG with compression
+        const compressed = await pipeline
+            .jpeg({ quality, mozjpeg: true })
+            .toBuffer();
+
+        console.log(`Image compressed: ${buffer.length} bytes -> ${compressed.length} bytes (${Math.round((1 - compressed.length / buffer.length) * 100)}% reduction)`);
+
+        return {
+            buffer: compressed,
+            mimetype: 'image/jpeg',
+            originalSize: buffer.length,
+            compressedSize: compressed.length
+        };
+    } catch (error) {
+        console.error('Image compression failed:', error.message);
+        // Return original if compression fails
+        return {
+            buffer,
+            mimetype: options.originalMimetype || 'image/jpeg',
+            originalSize: buffer.length,
+            compressedSize: buffer.length
+        };
+    }
+};
+
 
 // Storage configuration for profile pictures
 const profilePictureStorage = multer.diskStorage({
@@ -102,6 +151,8 @@ module.exports = {
     uploadForAnalysis,
     getFileUrl,
     saveBase64Image,
+    compressImage,
     profilePicturesDir,
     analyzedImagesDir
 };
+

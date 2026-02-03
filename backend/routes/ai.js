@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
-const { uploadForAnalysis, saveBase64Image, analyzedImagesDir, getFileUrl } = require('../config/fileStorage');
+const { uploadForAnalysis, saveBase64Image, analyzedImagesDir, getFileUrl, compressImage } = require('../config/fileStorage');
 const auth = require('../middleware/auth');
 
 // Analyze food using OpenRouter (works with GPT-4 Vision, Claude, etc.)
@@ -89,15 +89,21 @@ router.post('/analyze-food', auth, uploadForAnalysis.single('image'), async (req
             return res.status(500).json({ error: 'OPENROUTER_API_KEY not configured in .env' });
         }
 
-        // Convert image to base64
-        const imageBase64 = req.file.buffer.toString('base64');
-        const mimeType = req.file.mimetype;
+        // Compress image before processing (reduces 3MB+ to ~200-400KB)
+        const compressed = await compressImage(req.file.buffer, {
+            maxWidth: 1200,
+            quality: 80,
+            originalMimetype: req.file.mimetype
+        });
 
-        // Save the image locally for future reference
+        // Convert compressed image to base64
+        const imageBase64 = compressed.buffer.toString('base64');
+        const mimeType = compressed.mimetype; // Always 'image/jpeg' after compression
+
+        // Save the compressed image locally for future reference
         const userId = req.user?.userId || 'anonymous';
         const timestamp = Date.now();
-        const ext = req.file.originalname ? path.extname(req.file.originalname) : '.jpg';
-        const filename = `${userId}_${timestamp}${ext}`;
+        const filename = `${userId}_${timestamp}.jpg`; // Always .jpg after compression
 
         let savedImagePath = null;
         try {
