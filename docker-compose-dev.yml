@@ -24,7 +24,7 @@ services:
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
     volumes:
-      - dev_backend_uploads:/app/uploads
+      - /home/ubuntu/apps/FTcom_Infrastructure/data/HealthNHabits/uploads:/app/uploads
     ports:
       - "2110:5050"
     networks:
@@ -52,6 +52,3 @@ networks:
   infra-network:
     external: true
     name: infra-network
-
-volumes:
-  dev_backend_uploads:

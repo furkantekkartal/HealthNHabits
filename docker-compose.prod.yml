@@ -25,7 +25,7 @@ services:
     ports:
       - "2210:5000"
     volumes:
-      - backend_uploads:/app/uploads
+      - /home/ubuntu/apps/FTcom_Infrastructure/data/HealthNHabits/uploads:/app/uploads
     networks:
       - healthnhabits-network
       - infra-network
@@ -52,6 +52,3 @@ networks:
   infra-network:
     external: true
     name: infra-network
-
-volumes:
-  backend_uploads:
