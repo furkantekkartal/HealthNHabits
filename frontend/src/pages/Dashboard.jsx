@@ -668,7 +668,7 @@ export default function Dashboard() {
                     </div>
                 </button>
                 <button onClick={() => navigate('/analyze')} className="group relative flex items-center justify-center w-14 h-14 bg-primary rounded-full shadow-lg shadow-primary/40 hover:scale-105 transition-transform active:scale-95">
-                    <span className="material-symbols-outlined text-black text-3xl font-bold">add</span>
+                    <span className="material-symbols-outlined text-black text-2xl">photo_camera</span>
                 </button>
             </div >
         </div >
