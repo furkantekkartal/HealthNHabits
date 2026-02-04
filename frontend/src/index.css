@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Tailwind v4 Theme - Map CSS variables to utility classes */
+@theme {
+  --color-primary: #13ec13;
+  --color-primary-dark: #0fb80f;
+}
+
 /* ========================================
    LIGHT MODE THEME - Force Light Mode
    ======================================== */

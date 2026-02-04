@@ -272,17 +272,13 @@ export default function Catalog() {
                 </div>
             </div>
 
-            {/* Scan Button - Always Green */}
-            <div className="px-4 pb-3">
-                <Link
-                    to="/analyze"
-                    className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold transition-colors shadow-md"
-                    style={{ backgroundColor: '#1aff1a', color: '#000' }}
-                >
-                    <span className="material-symbols-outlined">photo_camera</span>
-                    Scan Food with AI
-                </Link>
-            </div>
+            {/* Floating Scan Button - Compact like Dashboard FAB */}
+            <Link
+                to="/analyze"
+                className="fixed bottom-24 right-6 z-20 flex items-center justify-center w-14 h-14 bg-primary rounded-full shadow-lg shadow-primary/40 hover:scale-105 transition-transform active:scale-95"
+            >
+                <span className="material-symbols-outlined text-black text-2xl">photo_camera</span>
+            </Link>
 
             {/* Meal Type Selector - Colorful Icons */}
             <div className="px-4 pb-3">
