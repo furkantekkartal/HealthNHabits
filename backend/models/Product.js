@@ -9,7 +9,7 @@ const Product = sequelize.define('Product', {
     },
     userId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true, // null = default product (visible to all), non-null = private to user
         field: 'user_id',
         references: {
             model: 'users',
@@ -91,10 +91,16 @@ const Product = sequelize.define('Product', {
     updatedAt: 'updated_at'
 });
 
-// Static method to get most used products for a specific user
+// Static method to get most used products (defaults + user's own)
 Product.getMostUsed = async function (userId, limit = 10) {
+    const { Op } = require('sequelize');
     return this.findAll({
-        where: { userId },
+        where: {
+            [Op.or]: [
+                { userId: null },  // Default products
+                { userId: userId } // User's own products
+            ]
+        },
         order: [['usage_count', 'DESC']],
         limit
     });

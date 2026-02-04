@@ -17,12 +17,20 @@ const formatProduct = (product, req) => {
     return apiFormat;
 };
 
-// Get all products (with search & category filter) - filtered by user
+// Get all products (with search & category filter)
+// Shows: default products (userId=null) + user's own private products
 router.get('/', async (req, res) => {
     try {
         const { search, category } = req.query;
         const userId = req.user.userId;
-        const where = { userId }; // Filter by user
+
+        // Show default products (userId=null) OR user's own products
+        const where = {
+            [Op.or]: [
+                { userId: null },      // Default products visible to all
+                { userId: userId }     // User's private products
+            ]
+        };
 
         if (search) {
             where.name = { [Op.iLike]: `%${search}%` };
@@ -34,7 +42,10 @@ router.get('/', async (req, res) => {
         const products = await Product.findAll({
             where,
             include: [{ model: ProductVariant, as: 'variants' }],
-            order: [['created_at', 'DESC']]
+            order: [
+                ['userId', 'ASC NULLS FIRST'], // Default products first
+                ['usage_count', 'DESC']         // Then by most used
+            ]
         });
 
         res.json(products.map(p => formatProduct(p, req)));
@@ -44,7 +55,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Get most used products - filtered by user
+// Get most used products - includes defaults and user's products
 router.get('/most-used', async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 10;
@@ -56,12 +67,18 @@ router.get('/most-used', async (req, res) => {
     }
 });
 
-// Get single product - verify ownership
+// Get single product - allows default products or user's own
 router.get('/:id', async (req, res) => {
     try {
         const userId = req.user.userId;
         const product = await Product.findOne({
-            where: { id: req.params.id, userId },
+            where: {
+                id: req.params.id,
+                [Op.or]: [
+                    { userId: null },  // Default product
+                    { userId: userId } // User's own product
+                ]
+            },
             include: [{ model: ProductVariant, as: 'variants' }]
         });
         if (!product) {
