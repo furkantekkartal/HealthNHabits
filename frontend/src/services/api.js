@@ -35,8 +35,8 @@ const api = axios.create({
     },
 });
 
-// Dashboard
-export const getDashboard = () => api.get('/dashboard');
+// Dashboard - pass user's local date to ensure correct timezone handling
+export const getDashboard = (date) => api.get('/dashboard', { params: { date } });
 export const getWeeklySummary = () => api.get('/dashboard/weekly');
 
 // Profile

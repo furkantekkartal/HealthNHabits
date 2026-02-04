@@ -12,7 +12,11 @@ router.use(auth);
 router.get('/', async (req, res) => {
     try {
         const userId = req.user.userId;
-        const log = await DailyLog.getOrCreateToday(userId);
+        // Use client's date if provided to handle timezone correctly
+        const date = req.query.date;
+        const log = date
+            ? await DailyLog.getOrCreateForDate(userId, date)
+            : await DailyLog.getOrCreateToday(userId);
         const profile = await UserProfile.findOne({ where: { userId } });
 
         // Default goals

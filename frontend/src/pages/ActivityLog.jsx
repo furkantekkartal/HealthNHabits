@@ -36,7 +36,8 @@ export default function ActivityLog() {
 
     const handleDelete = async (entryId) => {
         try {
-            const dateStr = isToday() ? undefined : getDateString();
+            // Always pass the date to ensure correct timezone handling
+            const dateStr = getDateString();
             await deleteEntry(entryId, dateStr);
             setToast({ message: 'Entry deleted', type: 'success' });
             fetchLog();

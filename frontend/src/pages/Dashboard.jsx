@@ -23,8 +23,10 @@ export default function Dashboard() {
     const fetchDashboard = async () => {
         try {
             setLoading(true);
+            // Always pass user's local date to ensure correct timezone handling
+            const todayStr = getDateString();
             const [dashRes, profileRes, weightRes] = await Promise.all([
-                getDashboard(),
+                getDashboard(todayStr),
                 getProfile(),
                 getWeightHistory(7)
             ]);
