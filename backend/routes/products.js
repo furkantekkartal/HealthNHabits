@@ -43,8 +43,8 @@ router.get('/', async (req, res) => {
             where,
             include: [{ model: ProductVariant, as: 'variants' }],
             order: [
-                ['userId', 'ASC NULLS FIRST'], // Default products first
-                ['usage_count', 'DESC']         // Then by most used
+                ['userId', 'DESC NULLS LAST'], // User's products first, defaults last
+                ['created_at', 'DESC']          // Newest first within each group
             ]
         });
 
