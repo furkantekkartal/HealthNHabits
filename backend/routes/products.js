@@ -3,6 +3,10 @@ const router = express.Router();
 const { Op } = require('sequelize');
 const { Product, ProductVariant } = require('../models');
 const { getFileUrl } = require('../config/fileStorage');
+const auth = require('../middleware/auth');
+
+// All product routes require authentication
+router.use(auth);
 
 // Helper to format product for API response
 const formatProduct = (product, req) => {
@@ -13,11 +17,12 @@ const formatProduct = (product, req) => {
     return apiFormat;
 };
 
-// Get all products (with search & category filter)
+// Get all products (with search & category filter) - filtered by user
 router.get('/', async (req, res) => {
     try {
         const { search, category } = req.query;
-        const where = {};
+        const userId = req.user.userId;
+        const where = { userId }; // Filter by user
 
         if (search) {
             where.name = { [Op.iLike]: `%${search}%` };
@@ -39,21 +44,24 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Get most used products
+// Get most used products - filtered by user
 router.get('/most-used', async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 10;
-        const products = await Product.getMostUsed(limit);
+        const userId = req.user.userId;
+        const products = await Product.getMostUsed(userId, limit);
         res.json(products.map(p => formatProduct(p, req)));
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// Get single product
+// Get single product - verify ownership
 router.get('/:id', async (req, res) => {
     try {
-        const product = await Product.findByPk(req.params.id, {
+        const userId = req.user.userId;
+        const product = await Product.findOne({
+            where: { id: req.params.id, userId },
             include: [{ model: ProductVariant, as: 'variants' }]
         });
         if (!product) {
@@ -71,8 +79,11 @@ router.post('/', async (req, res) => {
         const path = require('path');
         const fs = require('fs');
 
+        const userId = req.user.userId;
+
         // Flatten nested objects from request
         const productData = {
+            userId, // Associate product with user
             name: req.body.name,
             emoji: req.body.emoji,
             category: req.body.category,
@@ -87,16 +98,17 @@ router.post('/', async (req, res) => {
                     const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
                     const base64Data = matches[2];
                     const filename = `product_${Date.now()}.${ext}`;
-                    const productImagesDir = path.join(__dirname, '..', 'uploads', 'product_images');
+                    // User-specific subdirectory for images
+                    const productImagesDir = path.join(__dirname, '..', 'uploads', 'product_images', String(userId));
 
-                    // Ensure directory exists
+                    // Ensure user directory exists
                     if (!fs.existsSync(productImagesDir)) {
                         fs.mkdirSync(productImagesDir, { recursive: true });
                     }
 
                     const filePath = path.join(productImagesDir, filename);
                     fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
-                    productData.imagePath = `uploads/product_images/${filename}`;
+                    productData.imagePath = `uploads/product_images/${userId}/${filename}`;
                 }
             } catch (imgError) {
                 console.error('Error saving product image:', imgError);
@@ -162,13 +174,14 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Update product
+// Update product - verify ownership
 router.put('/:id', async (req, res) => {
     try {
         const path = require('path');
         const fs = require('fs');
+        const userId = req.user.userId;
 
-        const product = await Product.findByPk(req.params.id);
+        const product = await Product.findOne({ where: { id: req.params.id, userId } });
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
@@ -188,7 +201,8 @@ router.put('/:id', async (req, res) => {
                     const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
                     const base64Data = matches[2];
                     const filename = `product_${Date.now()}.${ext}`;
-                    const productImagesDir = path.join(__dirname, '..', 'uploads', 'product_images');
+                    // User-specific subdirectory for images
+                    const productImagesDir = path.join(__dirname, '..', 'uploads', 'product_images', String(userId));
 
                     if (!fs.existsSync(productImagesDir)) {
                         fs.mkdirSync(productImagesDir, { recursive: true });
@@ -196,7 +210,7 @@ router.put('/:id', async (req, res) => {
 
                     const filePath = path.join(productImagesDir, filename);
                     fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
-                    updateData.imagePath = `uploads/product_images/${filename}`;
+                    updateData.imagePath = `uploads/product_images/${userId}/${filename}`;
                 }
             } catch (imgError) {
                 console.error('Error saving product image:', imgError);
@@ -254,10 +268,11 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// Delete product
+// Delete product - verify ownership
 router.delete('/:id', async (req, res) => {
     try {
-        const product = await Product.findByPk(req.params.id);
+        const userId = req.user.userId;
+        const product = await Product.findOne({ where: { id: req.params.id, userId } });
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
@@ -268,10 +283,11 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-// Increment usage count (called when adding to log)
+// Increment usage count (called when adding to log) - verify ownership
 router.post('/:id/use', async (req, res) => {
     try {
-        const product = await Product.findByPk(req.params.id);
+        const userId = req.user.userId;
+        const product = await Product.findOne({ where: { id: req.params.id, userId } });
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
         }
@@ -283,15 +299,16 @@ router.post('/:id/use', async (req, res) => {
     }
 });
 
-// Update sort order
+// Update sort order - only for user's own products
 router.post('/reorder', async (req, res) => {
     try {
+        const userId = req.user.userId;
         const { productIds } = req.body; // Array of product IDs in new order
 
         for (let i = 0; i < productIds.length; i++) {
             await Product.update(
                 { sortOrder: i },
-                { where: { id: productIds[i] } }
+                { where: { id: productIds[i], userId } } // Only update user's products
             );
         }
 

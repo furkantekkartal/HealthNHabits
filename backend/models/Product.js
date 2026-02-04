@@ -7,6 +7,15 @@ const Product = sequelize.define('Product', {
         primaryKey: true,
         autoIncrement: true
     },
+    userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        field: 'user_id',
+        references: {
+            model: 'users',
+            key: 'id'
+        }
+    },
     name: {
         type: DataTypes.STRING(255),
         allowNull: false
@@ -82,9 +91,10 @@ const Product = sequelize.define('Product', {
     updatedAt: 'updated_at'
 });
 
-// Static method to get most used products
-Product.getMostUsed = async function (limit = 10) {
+// Static method to get most used products for a specific user
+Product.getMostUsed = async function (userId, limit = 10) {
     return this.findAll({
+        where: { userId },
         order: [['usage_count', 'DESC']],
         limit
     });
