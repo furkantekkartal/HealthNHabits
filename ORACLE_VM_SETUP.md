@@ -278,7 +278,7 @@ This section explains how to push local changes to the server, test on dev, and 
 | Project | Dev URL | Prod URL | Location |
 |---------|---------|----------|----------|
 | **HealthNHabits** | healthnhabits-dev.furkantekkartal.com | healthnhabits.furkantekkartal.com | `~/apps/HealthNHabits` |
-| **HomeMadeKahoot** | kahoot-dev.furkantekkartal.com | kahoot.furkantekkartal.com | `~/apps/HomeMadeKahoot` |
+| **HomeMadeKahoot** | kahoot-dev.furkantekkartal.com | kahoot.furkantekkartal.com | `~/apps/HomeMadeKahoot` |\r\n| **Receiptly** | receiptly-dev.furkantekkartal.com | receiptly.furkantekkartal.com | `~/apps/Receiptly` |
 | **FTcom_Infrastructure** | N/A (shared infra) | N/A | `~/apps/FTcom_Infrastructure` |
 | **FTcom** | N/A | furkantekkartal.com | `~/apps/FTcom` |
 
